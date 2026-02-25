@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </h2>
         <p>Smart Plant Recommendation System</p>
         
-        <form method="POST" action="login.php">
+        <form method="POST" action="index.php">
             <input type="text" name="username" placeholder="Username or Farm ID" required>
             <input type="password" name="password" placeholder="Password" required>
             

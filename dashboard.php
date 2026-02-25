@@ -4,7 +4,7 @@ session_start();
 // FIX 1: Set the timezone to match your save_data.php
 date_default_timezone_set('Asia/Manila'); 
 
-if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit(); }
+if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 
 include 'includes/db_connect.php';
 include 'includes/crops.php';

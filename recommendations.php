@@ -1,7 +1,7 @@
 <?php
 // recommendations.php
 session_start();
-if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit(); }
+if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 
 include 'includes/db_connect.php';
 include 'includes/crops.php';

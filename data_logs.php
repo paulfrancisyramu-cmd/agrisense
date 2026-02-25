@@ -1,7 +1,7 @@
 <?php
 // data_logs.php
 session_start();
-if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit(); }
+if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 
 // FORCE PHILIPPINES TIMEZONE (Matches Nagcarlan/Lipa City)
 date_default_timezone_set('Asia/Manila');

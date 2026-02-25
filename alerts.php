@@ -1,7 +1,7 @@
 <?php
 // alerts.php
 session_start();
-if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit(); }
+if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 include 'includes/db_connect.php';
 
 $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch_assoc();
