@@ -16,9 +16,8 @@ $selected_date = isset($_GET['date']) ? $_GET['date'] : $today;
 
 // FIX: Fetch logs using 'created_at' to match your updated MySQL schema
 $stmt = $conn->prepare("SELECT * FROM sensor_data WHERE DATE(created_at) = ? ORDER BY created_at DESC");
-$stmt->bind_param("s", $selected_date);
-$stmt->execute();
-$logs = $stmt->get_result();
+$stmt->execute([$selected_date]);
+$logs = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -95,7 +94,7 @@ $logs = $stmt->get_result();
             </div>
         </div>
 
-        <?php if ($logs->num_rows == 0): ?>
+        <?php if (count($logs) === 0): ?>
             <div class="card" style="text-align: center; padding: 50px 20px; border-top: 5px solid #40916c;">
                 <p style="color: #95a5a6;">No data logged yet for <?php echo htmlspecialchars($selected_date); ?>.</p>
             </div>
@@ -111,7 +110,7 @@ $logs = $stmt->get_result();
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while($log = $logs->fetch_assoc()): ?>
+                    <?php foreach ($logs as $log): ?>
                     <tr>
                         <td style="font-weight: 600; color: #40916c;">
                             <?php echo date("H:i:s", strtotime($log['created_at'])); ?>
@@ -121,7 +120,7 @@ $logs = $stmt->get_result();
                         <td><?php echo isset($log['rain_forecast']) ? number_format($log['rain_forecast'], 1) . ' mm' : '--'; ?></td>
                         <td><span class="badge">Recorded</span></td>
                     </tr>
-                    <?php endwhile; ?>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         <?php endif; ?>

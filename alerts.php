@@ -4,8 +4,8 @@ session_start();
 if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 include 'includes/db_connect.php';
 
-$settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch_assoc();
-$latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch_assoc();
+$settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
+$latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 
 $alerts = [];
 $current_time = time();

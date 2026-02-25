@@ -7,8 +7,8 @@ include 'includes/db_connect.php';
 include 'includes/crops.php';
 include 'includes/dss_logic.php';
 
-$settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch_assoc();
-$latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch_assoc();
+$settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
+$latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
 // --- HARDWARE FRESHNESS CHECK (COMMENTED OUT FOR TESTING) ---

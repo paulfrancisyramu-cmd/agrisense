@@ -11,13 +11,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $rain = (float)$_POST['rain_threshold'];
     $timeout = (int)$_POST['heartbeat_timeout'];
 
-    $update = $conn->prepare("UPDATE system_settings SET heat_threshold=?, hum_threshold=?, rain_threshold=?, heartbeat_timeout=? WHERE id=1");
-    $update->bind_param("dddi", $heat, $hum, $rain, $timeout);
-    $update->execute();
+    $update = $conn->prepare("UPDATE system_settings SET heat_threshold = ?, hum_threshold = ?, rain_threshold = ?, heartbeat_timeout = ? WHERE id = 1");
+    $update->execute([$heat, $hum, $rain, $timeout]);
 }
 
 // Fetch current settings to populate the form
-$settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch_assoc();
+$settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 ?>
 
 <!DOCTYPE html>

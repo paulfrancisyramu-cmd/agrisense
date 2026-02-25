@@ -15,14 +15,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = $_POST['username'];
     $pass = $_POST['password'];
 
-    // Query the database for the user
-    $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
-    $stmt->bind_param("s", $user);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // Query the database for the user (PDO)
+    $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = :username");
+    $stmt->execute([':username' => $user]);
+    $data = $stmt->fetch();
 
-    if ($result->num_rows === 1) {
-        $data = $result->fetch_assoc();
+    if ($data) {
         // Compare passwords
         if ($pass === $data['password']) {
             $_SESSION['user_id'] = $data['id'];
