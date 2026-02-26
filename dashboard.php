@@ -14,10 +14,11 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
-// Heartbeat: if we don't see a new reading within 60s, treat hardware as offline.
+// Heartbeat: if we don't see a new reading within the configured timeout,
+// treat hardware as offline.
 $current_time = time();
 $last_seen = isset($latest['created_at']) ? strtotime($latest['created_at']) : 0;
-$timeout = 60; // seconds
+$timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
 $is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
 
 $sensor_data = [

@@ -14,8 +14,8 @@ $weather = fetch_micro_season_forecast();
 $current_time = time();
 // Use the same created_at heartbeat column used across the app
 $last_seen = isset($latest['created_at']) ? strtotime($latest['created_at']) : 0;
-// Give the ESP32 a wider window so brief gaps don't mark it offline
-$timeout = 60;
+// Use configurable heartbeat timeout from settings (seconds)
+$timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
 
 // Diagnostic Logic
 $esp32_online = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
