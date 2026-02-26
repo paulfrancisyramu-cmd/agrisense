@@ -14,10 +14,11 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
-// Heartbeat: if we don't see a new reading within the configured timeout,
-// treat hardware as offline.
+// Heartbeat: track device "alive" status separately from data logging.
+// Uses device_heartbeat.last_seen which updates every ESP32 POST.
+$hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
 $current_time = time();
-$last_seen = isset($latest['created_at']) ? strtotime($latest['created_at']) : 0;
+$last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
 $timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
 $is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
 
@@ -78,6 +79,7 @@ if ($sensor_data['temperature'] !== "--") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="10">
     <title>AgriSense - Dashboard</title>
     <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

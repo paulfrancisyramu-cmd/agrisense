@@ -16,6 +16,15 @@ if ($data && isset($data['temperature']) && isset($data['humidity'])) {
     // These are your actual, physical DHT11 readings
     $temp = (float)$data['temperature'];
     $hum = (float)$data['humidity'];
+
+    // 1.5 Heartbeat: mark the device as seen (even if values don't change)
+    // Requires device_heartbeat table (see schema_postgres_heartbeat.sql)
+    $hb = $conn->prepare("
+        INSERT INTO device_heartbeat (id, last_seen)
+        VALUES (1, NOW())
+        ON CONFLICT (id) DO UPDATE SET last_seen = EXCLUDED.last_seen
+    ");
+    $hb->execute();
     
     // 2. Fetch the REAL settings and weather forecast
     $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
@@ -25,9 +34,7 @@ if ($data && isset($data['temperature']) && isset($data['humidity'])) {
     $rain_forecast = (float)$weather['two_week_total']; 
 
     // 2.5 Only log a new row when values actually change
-    // We still update the latest row's timestamp so the dashboard
-    // can see that the hardware is alive, without spamming new rows.
-    $last_row = $conn->query("SELECT id, temp, hum, rain_forecast FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
+    $last_row = $conn->query("SELECT temp, hum, rain_forecast FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
     if ($last_row) {
         $last_temp = (float)$last_row['temp'];
         $last_hum = (float)$last_row['hum'];
@@ -39,11 +46,8 @@ if ($data && isset($data['temperature']) && isset($data['humidity'])) {
         $rain_changed = abs($rain_forecast - $last_rain) >= 0.1;
 
         if (!$temp_changed && !$hum_changed && !$rain_changed) {
-            // Just refresh the latest record's created_at as a heartbeat
-            $update = $conn->prepare("UPDATE sensor_data SET created_at = NOW() WHERE id = ?");
-            $update->execute([$last_row['id']]);
             echo "No significant change in readings; heartbeat updated.";
-            return;
+            exit;
         }
     }
     
@@ -58,7 +62,7 @@ if ($data && isset($data['temperature']) && isset($data['humidity'])) {
         }
     }
 
-    // 4. Save ALL the real data into MySQL
+    // 4. Save ALL the real data into Postgres
     $stmt = $conn->prepare("INSERT INTO sensor_data (temp, hum, rain_forecast, recommendation) VALUES (?, ?, ?, ?)");
     
     if ($stmt->execute([$temp, $hum, $rain_forecast, $recommendation])) {

@@ -11,9 +11,9 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
+$hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
 $current_time = time();
-// Use the same created_at heartbeat column used across the app
-$last_seen = isset($latest['created_at']) ? strtotime($latest['created_at']) : 0;
+$last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
 // Use configurable heartbeat timeout from settings (seconds)
 $timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
 
