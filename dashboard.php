@@ -14,13 +14,9 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
-// Heartbeat-based hardware check: if no fresh reading within timeout,
-// treat hardware as offline so the cards show "No Hardware Detected".
-$current_time = time();
-$last_seen = isset($latest['created_at']) ? strtotime($latest['created_at']) : 0;
-// Give a generous 5‑minute window in case readings are infrequent
-$timeout = 300;
-$is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
+// Simple hardware check: if we have at least one reading with a temp value,
+// treat hardware as live. Device Status page still uses a stricter heartbeat.
+$is_live = ($latest && isset($latest['temp']) && $latest['temp'] !== null);
 
 $sensor_data = [
     'temperature' => ($is_live) ? ($latest['temp'] ?? "--") : "--",
