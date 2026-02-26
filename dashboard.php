@@ -79,7 +79,6 @@ if ($sensor_data['temperature'] !== "--") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="10">
     <title>AgriSense - Dashboard</title>
     <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
