@@ -25,7 +25,9 @@ if ($data && isset($data['temperature']) && isset($data['humidity'])) {
     $rain_forecast = (float)$weather['two_week_total']; 
 
     // 2.5 Only log a new row when values actually change
-    $last_row = $conn->query("SELECT temp, hum, rain_forecast FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
+    // We still update the latest row's timestamp so the dashboard
+    // can see that the hardware is alive, without spamming new rows.
+    $last_row = $conn->query("SELECT id, temp, hum, rain_forecast FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
     if ($last_row) {
         $last_temp = (float)$last_row['temp'];
         $last_hum = (float)$last_row['hum'];
@@ -37,8 +39,11 @@ if ($data && isset($data['temperature']) && isset($data['humidity'])) {
         $rain_changed = abs($rain_forecast - $last_rain) >= 0.1;
 
         if (!$temp_changed && !$hum_changed && !$rain_changed) {
-            echo "No significant change in readings; log skipped.";
-            exit;
+            // Just refresh the latest record's created_at as a heartbeat
+            $update = $conn->prepare("UPDATE sensor_data SET created_at = NOW() WHERE id = ?");
+            $update->execute([$last_row['id']]);
+            echo "No significant change in readings; heartbeat updated.";
+            return;
         }
     }
     
