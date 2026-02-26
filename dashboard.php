@@ -14,15 +14,10 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
-$current_time = time();
-
-// FIX 2: Check your phpMyAdmin. If the column is 'reading_time', change 'timestamp' below to 'reading_time'
-$last_seen = isset($latest['created_at']) ? strtotime($latest['created_at']) : 0;
-
-// FIX 3: Increase timeout to 60 so it doesn't flicker "No Hardware" every 10 seconds
-$timeout = 60; 
-
-$is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
+// Treat hardware as present if we have at least one reading.
+// This avoids strict heartbeat timeouts causing "No Hardware" when
+// the ESP32 is still posting but timestamps differ slightly.
+$is_live = ($latest && isset($latest['temp']) && $latest['temp'] !== null);
 
 $sensor_data = [
     'temperature' => ($is_live) ? ($latest['temp'] ?? "--") : "--",
