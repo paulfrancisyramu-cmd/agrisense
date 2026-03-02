@@ -9,21 +9,21 @@ $CROP_DATABASE = [
     [
         "name" => "Cabbage", 
         "image_url" => "https://img.icons8.com/color/96/cabbage.png", 
-        "ideal_temp" => [15, 25], 
+        "ideal_temp" => [10, 24], 
         "ideal_hum" => [60, 90], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Chinese Cabbage", 
         "image_url" => "https://img.icons8.com/?size=100&id=RtaauUCTxdA1&format=png&color=000000", 
-        "ideal_temp" => [15, 25], 
+        "ideal_temp" => [15, 20], 
         "ideal_hum" => [60, 85], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Beans / Sitao", 
         "image_url" => "https://img.icons8.com/?size=100&id=HplvJJynUBBe&format=png&color=000000", 
-        "ideal_temp" => [20, 29], 
+        "ideal_temp" => [20, 30], 
         "ideal_hum" => [65, 80], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
@@ -128,7 +128,7 @@ $CROP_DATABASE = [
         "name" => "Gabi", 
         "image_url" => "https://img.icons8.com/color/96/potato.png", 
         "ideal_temp" => [25, 35], 
-        "ideal_hum" => [80, 95], 
+        "ideal_hum" => [65, 80], 
         "seasons" => ["Hot Dry"]
     ]
 ];
