@@ -1,6 +1,8 @@
 <?php
 // devices.php
 session_start();
+// Match timezone with dashboard.php and api/save_data.php so heartbeat math is consistent
+date_default_timezone_set('Asia/Manila');
 if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 
 include 'includes/db_connect.php';
