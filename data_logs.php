@@ -106,6 +106,7 @@ $logs = $stmt->fetchAll();
                         <th>Temperature</th>
                         <th>Humidity</th>
                         <th>Rain (14‑Day)</th>
+                        <th>Most Suitable Crop</th>
                         <th>Event Status</th>
                     </tr>
                 </thead>
@@ -118,6 +119,16 @@ $logs = $stmt->fetchAll();
                         <td><?php echo number_format($log['temp'], 1); ?> °C</td>
                         <td><?php echo number_format($log['hum'], 1); ?> %</td>
                         <td><?php echo isset($log['rain_forecast']) ? number_format($log['rain_forecast'], 1) . ' mm' : '--'; ?></td>
+                        <td>
+                            <?php
+                                // recommendation field looks like "Plant Gabi (Hot Dry)" – extract crop name
+                                $cropLabel = $log['recommendation'] ?? '';
+                                if (strpos($cropLabel, 'Plant ') === 0) {
+                                    $cropLabel = substr($cropLabel, 6);
+                                }
+                                echo htmlspecialchars($cropLabel);
+                            ?>
+                        </td>
                         <td><span class="badge">Recorded</span></td>
                     </tr>
                     <?php endforeach; ?>
