@@ -11,15 +11,32 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
-// --- HARDWARE FRESHNESS CHECK (COMMENTED OUT FOR TESTING) ---
-
+// --- HARDWARE FRESHNESS CHECK (SHARED WITH DASHBOARD/DEVICES) ---
+// Use the same heartbeat table the ESP32 touches on every POST so that
+// recommendations only appear when the controller is actually online.
+$hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
 $current_time = time();
-// Match dashboard/devices heartbeat logic using created_at
-$last_seen = isset($latest['created_at']) ? strtotime($latest['created_at']) : 0;
-// Wider window so recommendations stay live while ESP32 sends periodically
-$timeout = 60;
+$last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
 
-$is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
+// Re-use the configurable heartbeat timeout and clamp it to sane bounds.
+$timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
+if ($timeout < 15) $timeout = 15;
+if ($timeout > 300) $timeout = 300;
+
+$has_fresh_data = false;
+if ($latest && isset($latest['created_at'])) {
+    $last_data_time = strtotime($latest['created_at']);
+    $has_fresh_data = ($last_data_time > 0 && ($current_time - $last_data_time) <= $timeout);
+}
+
+// We only treat the system as "live" if the controller heartbeat is recent
+// AND there is a fresh sensor_data row for temperature/humidity.
+$is_live = (
+    $last_seen > 0 &&
+    ($current_time - $last_seen) <= $timeout &&
+    $has_fresh_data &&
+    isset($latest['temp'], $latest['hum'])
+);
 $no_data = !$is_live;
 
 
