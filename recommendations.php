@@ -11,33 +11,16 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
-// --- HARDWARE FRESHNESS CHECK (SHARED WITH DASHBOARD/DEVICES) ---
-// Use the same heartbeat table the ESP32 touches on every POST so that
-// recommendations only appear when the controller is actually online.
+// --- HARDWARE FRESHNESS CHECK (MATCHES DASHBOARD) ---
 $hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
 $current_time = time();
 $last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
-
-// Re-use the configurable heartbeat timeout and clamp it to sane bounds.
 $timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
-if ($timeout < 15) $timeout = 15;
-if ($timeout > 300) $timeout = 300;
+$is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
 
-$has_fresh_data = false;
-if ($latest && isset($latest['created_at'])) {
-    $last_data_time = strtotime($latest['created_at']);
-    $has_fresh_data = ($last_data_time > 0 && ($current_time - $last_data_time) <= $timeout);
-}
-
-// We only treat the system as "live" if the controller heartbeat is recent
-// AND there is a fresh sensor_data row for temperature/humidity.
-$is_live = (
-    $last_seen > 0 &&
-    ($current_time - $last_seen) <= $timeout &&
-    $has_fresh_data &&
-    isset($latest['temp'], $latest['hum'])
-);
-$no_data = !$is_live;
+// Recommendations are only allowed when hardware is live AND we actually have a temp+hum row.
+$has_sensor_row = ($latest && isset($latest['temp'], $latest['hum']));
+$no_data = (!$is_live || !$has_sensor_row);
 
 
 // --- FAKE DATA FOR TESTING ---
@@ -51,7 +34,8 @@ $latest['hum'] = 82.0;   // Try changing this (e.g., 60.0 for cool)
 $top_crop = null;
 $other_crops = [];
 
-if ($is_live) {
+// Only run the crop ranking when there is live hardware AND valid sensor data.
+if (!$no_data) {
     $current_temp = (float)$latest['temp'];
     $current_hum = (float)$latest['hum'];
     $active_season = get_current_season($current_temp, $current_hum, $weather['two_week_total'], $settings['rain_threshold']);

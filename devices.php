@@ -11,33 +11,17 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
+// Use the EXACT same heartbeat check as dashboard.php
 $hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
 $current_time = time();
 $last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
-
-// Use configurable heartbeat timeout from settings (seconds) but clamp to a
-// reasonable range so the UI cannot stay "Online" for hours if hardware dies.
 $timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
-if ($timeout < 15) $timeout = 15;
-if ($timeout > 300) $timeout = 300;
+$is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
 
-// Diagnostic Logic – ESP32 is considered online only if we have a recent heartbeat.
-$esp32_online = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
-
-// DHT11 sensor must have both a live controller AND a fresh data row.
-$last_data_time = isset($latest['created_at']) ? strtotime($latest['created_at']) : 0;
-$dht11_online = (
-    $esp32_online &&
-    $last_data_time > 0 &&
-    ($current_time - $last_data_time) <= $timeout &&
-    isset($latest['temp']) &&
-    $latest['temp'] !== null
-);
-
-// External rainfall API status comes directly from the DSS logic.
+// On the device page we simply mirror this:
+$esp32_online = $is_live;
+$dht11_online = ($is_live && isset($latest['temp']) && $latest['temp'] !== null);
 $api_online = ($weather['api_status'] === 'Online');
-
-// All systems nominal only if every dependency is healthy.
 $all_systems_nominal = ($esp32_online && $dht11_online && $api_online);
 ?>
 
