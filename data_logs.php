@@ -7,6 +7,8 @@ if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 date_default_timezone_set('Asia/Manila');
 
 include 'includes/db_connect.php';
+include 'includes/crops.php';
+include 'includes/dss_logic.php';
 
 // Get today's date in YYYY-MM-DD format based on Manila time
 $today = date('Y-m-d');
@@ -106,6 +108,7 @@ $logs = $stmt->fetchAll();
                         <th>Temperature</th>
                         <th>Humidity</th>
                         <th>Rain (14‑Day)</th>
+                        <th>Ideal Crop</th>
                         <th>Event Status</th>
                     </tr>
                 </thead>
@@ -118,6 +121,33 @@ $logs = $stmt->fetchAll();
                         <td><?php echo number_format($log['temp'], 1); ?> °C</td>
                         <td><?php echo number_format($log['hum'], 1); ?> %</td>
                         <td><?php echo isset($log['rain_forecast']) ? number_format($log['rain_forecast'], 1) . ' mm' : '--'; ?></td>
+                        <td>
+                            <?php
+                            // Prefer the stored recommendation text if it exists
+                            if (!empty($log['recommendation'])) {
+                                echo htmlspecialchars($log['recommendation']);
+                            } else {
+                                // Fallback: derive ideal crop name for this historical reading
+                                $temp = (float)$log['temp'];
+                                $hum  = (float)$log['hum'];
+                                $rain = isset($log['rain_forecast']) ? (float)$log['rain_forecast'] : 0.0;
+
+                                // Use the same seasonal engine as the rest of the app
+                                $settings = $conn->query("SELECT rain_threshold FROM system_settings WHERE id=1")->fetch();
+                                $rain_threshold = $settings ? (float)$settings['rain_threshold'] : 15.0;
+                                $season = get_current_season($temp, $hum, $rain, $rain_threshold);
+
+                                $ideal_crop_name = '--';
+                                foreach ($CROP_DATABASE as $crop) {
+                                    if (in_array($season, $crop['seasons'])) {
+                                        $ideal_crop_name = $crop['name'] . " (" . $season . ")";
+                                        break;
+                                    }
+                                }
+                                echo htmlspecialchars($ideal_crop_name);
+                            }
+                            ?>
+                        </td>
                         <td><span class="badge">Recorded</span></td>
                     </tr>
                     <?php endforeach; ?>
