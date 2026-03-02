@@ -10,6 +10,10 @@ include 'includes/db_connect.php';
 include 'includes/crops.php';
 include 'includes/dss_logic.php';
 
+// Load rainfall threshold once so we can reuse the same season logic per row
+$settings = $conn->query("SELECT rain_threshold FROM system_settings WHERE id=1")->fetch();
+$rain_threshold = $settings ? (float)$settings['rain_threshold'] : 15.0;
+
 // Get today's date in YYYY-MM-DD format based on Manila time
 $today = date('Y-m-d');
 
@@ -123,28 +127,34 @@ $logs = $stmt->fetchAll();
                         <td><?php echo isset($log['rain_forecast']) ? number_format($log['rain_forecast'], 1) . ' mm' : '--'; ?></td>
                         <td>
                             <?php
-                            // Prefer the stored recommendation text if it exists
-                            if (!empty($log['recommendation'])) {
-                                echo htmlspecialchars($log['recommendation']);
-                            } else {
-                                // Fallback: derive ideal crop name for this historical reading
-                                $temp = (float)$log['temp'];
-                                $hum  = (float)$log['hum'];
-                                $rain = isset($log['rain_forecast']) ? (float)$log['rain_forecast'] : 0.0;
+                            // Derive the ideal crop using the SAME logic as dashboard/recommendations
+                            $temp = (float)$log['temp'];
+                            $hum  = (float)$log['hum'];
+                            $rain = isset($log['rain_forecast']) ? (float)$log['rain_forecast'] : 0.0;
 
-                                // Use the same seasonal engine as the rest of the app
-                                $settings = $conn->query("SELECT rain_threshold FROM system_settings WHERE id=1")->fetch();
-                                $rain_threshold = $settings ? (float)$settings['rain_threshold'] : 15.0;
-                                $season = get_current_season($temp, $hum, $rain, $rain_threshold);
+                            $season = get_current_season($temp, $hum, $rain, $rain_threshold);
 
-                                $ideal_crop_name = '--';
-                                foreach ($CROP_DATABASE as $crop) {
-                                    if (in_array($season, $crop['seasons'])) {
-                                        $ideal_crop_name = $crop['name'] . " (" . $season . ")";
-                                        break;
-                                    }
+                            $ranked = [];
+                            foreach ($CROP_DATABASE as $crop) {
+                                if (in_array($season, $crop['seasons'])) {
+                                    $avgIdeal = (array_sum($crop['ideal_temp']) / 2);
+                                    $score = 100 - (abs($temp - $avgIdeal) * 5);
+                                    $ranked[] = [
+                                        'name' => $crop['name'],
+                                        'match' => max(0, (int)$score)
+                                    ];
                                 }
-                                echo htmlspecialchars($ideal_crop_name);
+                            }
+
+                            if (!empty($ranked)) {
+                                usort($ranked, function($a, $b) {
+                                    if ($a['match'] == $b['match']) return strcmp($a['name'], $b['name']);
+                                    return $b['match'] <=> $a['match'];
+                                });
+                                $ideal = $ranked[0]['name'] . " (" . $season . ")";
+                                echo htmlspecialchars($ideal);
+                            } else {
+                                echo '--';
                             }
                             ?>
                         </td>
