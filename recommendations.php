@@ -11,15 +11,16 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
-// Use the same heartbeat table as dashboard/devices so recommendations
-// only stay live while the ESP32 is actually checking in.
-$hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
+// --- HARDWARE FRESHNESS CHECK (COMMENTED OUT FOR TESTING) ---
+
 $current_time = time();
-$last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
-$timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
+// Match dashboard/devices heartbeat logic using created_at
+$last_seen = isset($latest['created_at']) ? strtotime($latest['created_at']) : 0;
+// Wider window so recommendations stay live while ESP32 sends periodically
+$timeout = 60;
 
 $is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
-$no_data = (!$is_live || !$latest);
+$no_data = !$is_live;
 
 
 // --- FAKE DATA FOR TESTING ---
