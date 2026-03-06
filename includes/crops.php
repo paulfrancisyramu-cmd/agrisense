@@ -82,7 +82,7 @@ $CROP_DATABASE = [
         "name" => "Tomato", 
         "image_url" => "https://img.icons8.com/color/96/tomato.png", 
         "ideal_temp" => [20, 24], 
-        "ideal_hum" => [60, 75, 
+        "ideal_hum" => [60, 75], 
         "seasons" => ["Wet/Rainy", "Cool Dry"]
     ],
     [
@@ -112,7 +112,7 @@ $CROP_DATABASE = [
         "name" => "Mustasa", 
         "image_url" => "https://img.icons8.com/color/96/mustard.png", 
         "ideal_temp" => [15, 25], 
-        "ideal_hum" => [60, 80, 
+        "ideal_hum" => [60, 80], 
         "seasons" => ["Wet/Rainy", "Hot Dry"]
     ],
     
