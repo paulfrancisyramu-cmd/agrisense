@@ -142,32 +142,29 @@ if ($sensor_data['temperature'] !== "--") {
                 <?php endif; ?>
             </div>
 
-           <div class="card recommendation-card" id="card-ideal-crop">
-    <h3 style="color: #1b4332;">IDEAL CROP</h3> 
-    
-    <div class="value" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
-        <?php if ($top_crop): ?>
-            <img src="<?php echo $top_crop['image_url']; ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px;"> 
-            <span style="font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 600; color: #1b4332 !important; letter-spacing: 0.5px;"><?php echo $top_crop['name']; ?></span>
-        <?php else: ?>
-            <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 600; color: #1b4332 !important;">Analyzing...</span>
-        <?php endif; ?>
-    </div>
-
-    <?php if ($top_crop): ?>
-    <div style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #1b4332; margin-top: 10px; font-weight: 500;">
-        Ideal: <?php echo $top_crop['req_temp']; ?> | <?php echo $top_crop['req_hum']; ?>
-    </div>
-    <?php endif; ?>
-
-    <div class="subtext" style="font-family: 'Poppins', sans-serif; margin-top: 8px; color: #1b4332; background: transparent; padding: 0;">
-        <?php if ($top_crop): ?>
-            <?php echo $top_crop['match']; ?>% Match for current season
-        <?php else: ?>
-            Gathering metrics...
-        <?php endif; ?>
-    </div>
-</div>
+            <div class="card recommendation-card" id="card-ideal-crop">
+                <h3 style="color: #d8f3dc;">IDEAL CROP</h3>
+                <div class="value" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                    <?php if ($top_crop): ?>
+                        <img src="<?php echo $top_crop['image_url']; ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px;"> 
+                        <span style="font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 600; color: white !important; letter-spacing: 0.5px;"><?php echo $top_crop['name']; ?></span>
+                    <?php else: ?>
+                        <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 600; color: white !important;">Analyzing...</span>
+                    <?php endif; ?>
+                </div>
+                <?php if ($top_crop): ?>
+                <div style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #d8f3dc; margin-top: 10px; font-weight: 500;">
+                    Ideal: <?php echo $top_crop['req_temp']; ?> | <?php echo $top_crop['req_hum']; ?>
+                </div>
+                <?php endif; ?>
+                <div class="subtext" style="font-family: 'Poppins', sans-serif; margin-top: 8px; color: #d8f3dc; background: transparent; padding: 0;">
+                    <?php if ($top_crop): ?>
+                        <?php echo $top_crop['match']; ?>% Match for current season
+                    <?php else: ?>
+                        Gathering metrics...
+                    <?php endif; ?>
+                </div>
+            </div>
 
         </div> 
     </div> 
