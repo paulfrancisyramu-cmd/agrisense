@@ -1,6 +1,8 @@
 <?php
 // devices.php
 session_start();
+// Match timezone with dashboard.php and api/save_data.php so heartbeat math is consistent
+date_default_timezone_set('Asia/Manila');
 if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 
 include 'includes/db_connect.php';
@@ -11,17 +13,17 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
+// Use the EXACT same heartbeat check as dashboard.php
 $hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
 $current_time = time();
 $last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
-// Use configurable heartbeat timeout from settings (seconds)
 $timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
+$is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
 
-// Diagnostic Logic
-$esp32_online = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
-$dht11_online = ($esp32_online && isset($latest['temp']) && $latest['temp'] !== null);
+// On the device page we simply mirror this:
+$esp32_online = $is_live;
+$dht11_online = ($is_live && isset($latest['temp']) && $latest['temp'] !== null);
 $api_online = ($weather['api_status'] === 'Online');
-
 $all_systems_nominal = ($esp32_online && $dht11_online && $api_online);
 ?>
 
@@ -29,6 +31,7 @@ $all_systems_nominal = ($esp32_online && $dht11_online && $api_online);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriSense - Device Status</title>
     <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
 </head>

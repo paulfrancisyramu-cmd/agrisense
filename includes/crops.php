@@ -9,70 +9,70 @@ $CROP_DATABASE = [
     [
         "name" => "Cabbage", 
         "image_url" => "https://img.icons8.com/color/96/cabbage.png", 
-        "ideal_temp" => [15, 25], 
+        "ideal_temp" => [10, 24], 
         "ideal_hum" => [60, 90], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Chinese Cabbage", 
         "image_url" => "https://img.icons8.com/?size=100&id=RtaauUCTxdA1&format=png&color=000000", 
-        "ideal_temp" => [15, 25], 
+        "ideal_temp" => [15, 20], 
         "ideal_hum" => [60, 85], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Beans / Sitao", 
         "image_url" => "https://img.icons8.com/?size=100&id=HplvJJynUBBe&format=png&color=000000", 
-        "ideal_temp" => [20, 29], 
+        "ideal_temp" => [20, 30], 
         "ideal_hum" => [65, 80], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Cucumber", 
         "image_url" => "https://img.icons8.com/color/96/cucumber.png", 
-        "ideal_temp" => [24, 30], 
+        "ideal_temp" => [23, 30], 
         "ideal_hum" => [60, 85], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Sweet Potato", 
         "image_url" => "https://img.icons8.com/color/96/sweet-potato.png", 
-        "ideal_temp" => [20, 30], 
-        "ideal_hum" => [50, 80], 
+        "ideal_temp" => [29, 35], 
+        "ideal_hum" => [85, 90], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Ampalaya", 
         "image_url" => "https://img.icons8.com/color/96/melon.png", 
-        "ideal_temp" => [24, 31], 
+        "ideal_temp" => [24, 27], 
         "ideal_hum" => [65, 85], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Sayote", 
         "image_url" => "https://img.icons8.com/color/96/pear.png", 
-        "ideal_temp" => [18, 25], 
+        "ideal_temp" => [20, 30], 
         "ideal_hum" => [70, 90], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Sili (Panigang/Tingala)", 
         "image_url" => "https://img.icons8.com/color/96/chili-pepper.png", 
-        "ideal_temp" => [25, 32], 
-        "ideal_hum" => [60, 80], 
+        "ideal_temp" => [21, 32], 
+        "ideal_hum" => [65, 85], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Radish", 
         "image_url" => "https://img.icons8.com/color/96/radish.png", 
-        "ideal_temp" => [15, 25], 
-        "ideal_hum" => [60, 80], 
+        "ideal_temp" => [15, 21], 
+        "ideal_hum" => [65, 85], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
     [
         "name" => "Pechay", 
         "image_url" => "https://img.icons8.com/color/96/bok-choy.png", 
-        "ideal_temp" => [20, 30], 
+        "ideal_temp" => [18, 22], 
         "ideal_hum" => [60, 85], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
@@ -81,21 +81,21 @@ $CROP_DATABASE = [
     [
         "name" => "Tomato", 
         "image_url" => "https://img.icons8.com/color/96/tomato.png", 
-        "ideal_temp" => [20, 28], 
-        "ideal_hum" => [60, 80], 
+        "ideal_temp" => [20, 24], 
+        "ideal_hum" => [60, 75], 
         "seasons" => ["Wet/Rainy", "Cool Dry"]
     ],
     [
         "name" => "Squash", 
         "image_url" => "https://img.icons8.com/color/96/pumpkin.png", 
-        "ideal_temp" => [25, 32], 
-        "ideal_hum" => [50, 75], 
+        "ideal_temp" => [18, 30], 
+        "ideal_hum" => [50, 70], 
         "seasons" => ["Wet/Rainy", "Cool Dry"]
     ],
     [
         "name" => "Pachoi", 
         "image_url" => "https://img.icons8.com/color/96/bok-choy.png", 
-        "ideal_temp" => [20, 30], 
+        "ideal_temp" => [18, 24], 
         "ideal_hum" => [60, 85], 
         "seasons" => ["Wet/Rainy", "Cool Dry"]
     ],
@@ -104,7 +104,7 @@ $CROP_DATABASE = [
     [
         "name" => "Eggplant", 
         "image_url" => "https://img.icons8.com/color/96/eggplant.png", 
-        "ideal_temp" => [25, 32], 
+        "ideal_temp" => [20, 30], 
         "ideal_hum" => [60, 75], 
         "seasons" => ["Wet/Rainy", "Hot Dry"]
     ],
@@ -120,15 +120,15 @@ $CROP_DATABASE = [
     [
         "name" => "Patola", 
         "image_url" => "https://img.icons8.com/color/96/zucchini.png", 
-        "ideal_temp" => [25, 30], 
+        "ideal_temp" => [18, 24], 
         "ideal_hum" => [60, 80], 
         "seasons" => ["Cool Dry"]
     ],
     [
         "name" => "Gabi", 
         "image_url" => "https://img.icons8.com/color/96/potato.png", 
-        "ideal_temp" => [25, 35], 
-        "ideal_hum" => [80, 95], 
+        "ideal_temp" => [25, 30], 
+        "ideal_hum" => [65, 80], 
         "seasons" => ["Hot Dry"]
     ]
 ];
