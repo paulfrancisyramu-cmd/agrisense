@@ -143,7 +143,7 @@ if ($sensor_data['temperature'] !== "--") {
             </div>
 
             <div class="card recommendation-card" id="card-ideal-crop">
-                <h3 style="color: #d8f3dc;">IDEAL CROP</h3>
+                <h3 style="color: #2d6a4f;">IDEAL CROP</h3>
                 <div class="value" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
                     <?php if ($top_crop): ?>
                         <img src="<?php echo $top_crop['image_url']; ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px;"> 
