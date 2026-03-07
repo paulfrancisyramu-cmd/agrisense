@@ -1,17 +1,5 @@
 <?php $current_page = basename($_SERVER['PHP_SELF']); ?>
-
-<div class="mobile-navbar">
-    <button id="menu-toggle" class="menu-btn">
-        <img src="https://unpkg.com/lucide-static@latest/icons/menu.svg" width="24" class="icon-white">
-    </button>
-    <div class="mobile-logo">
-        <img src="https://unpkg.com/lucide-static@latest/icons/leaf.svg" width="20" class="icon-white"> AgriSense
-    </div>
-</div>
-
-<div id="sidebar-overlay" class="sidebar-overlay"></div>
-
-<div class="sidebar" id="main-sidebar">
+<div class="sidebar">
     <h2><img src="https://unpkg.com/lucide-static@latest/icons/leaf.svg" width="24" class="icon-white"> AgriSense</h2>
     
     <p class="sidebar-label">Main Menu</p>
@@ -42,16 +30,3 @@
         </a>
     </div>
 </div>
-
-<script>
-// Simple script to toggle the sidebar
-document.getElementById('menu-toggle').addEventListener('click', function() {
-    document.getElementById('main-sidebar').classList.toggle('active');
-    document.getElementById('sidebar-overlay').classList.toggle('show');
-});
-
-document.getElementById('sidebar-overlay').addEventListener('click', function() {
-    document.getElementById('main-sidebar').classList.remove('open');
-    this.classList.remove('show');
-});
-</script>
