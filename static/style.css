@@ -23,9 +23,9 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     background-color: #ffffff; 
     padding: 30px; 
     border-radius: 16px; 
-    border: 1px solid #e2e8f0; /* This creates the crisp outline */
-    border-top: 5px solid #40916c; /* Keeps your green stripe */
-    box-shadow: 0 8px 25px rgba(0,0,0,0.05); /* Stronger shadow for 3D depth */
+    border: 1px solid #e2e8f0;
+    border-top: 5px solid #40916c;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.05);
     transition: transform 0.3s; 
 }
 
@@ -34,6 +34,8 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
 .icon-green { filter: invert(36%) sepia(13%) saturate(2406%) hue-rotate(107deg) brightness(96%) contrast(87%); }
 .btn { background: #2d6a4f; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; font-weight: 600; font-size: 14px; transition: 0.2s; }
 .btn:hover { background: #1b4332; }
+.export-btn { background: #2d6a4f; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; border: none; cursor: pointer; }
+.export-btn:hover { background: #1b4332; transform: translateY(-2px); }
 
 /* Login Specific */
 .login-body { 
@@ -55,12 +57,7 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
 .alert-unread { border-left-color: #cc5500; background: #fffaf0; }
 .alert-read { border-left-color: #40916c; opacity: 0.7; }
 
-/* =========================================
-   NEWLY ADDED: PAGE SPECIFIC STYLES 
-   ========================================= */
-
 /* Data Logs Table Styles */
-/* Data Logs Table Styles - UPDATED */
 .log-table { 
     width: 100%; 
     border-collapse: collapse; 
@@ -68,15 +65,14 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     background: white; 
     border-radius: 12px; 
     overflow: hidden; 
-    /* High contrast border and shadow to prevent blending */
     border: 1px solid #d1dbd4; 
     box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
 }
 
 .log-table th { 
-    background: #1b4332; /* Deep green header */
-    color: #d8f3dc;      /* Light green text */
-    text-align: center;  /* Centered headers */
+    background: #1b4332;
+    color: #d8f3dc;
+    text-align: center;
     padding: 18px 20px; 
     font-weight: 700; 
     font-size: 13px; 
@@ -89,13 +85,13 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     border-bottom: 1px solid #f0f4f8; 
     color: #2c3e50; 
     font-size: 15px; 
-    text-align: center;  /* Centered data */
+    text-align: center; 
 }
 
 .log-table tr:last-child td { border-bottom: none; }
 .log-table tr:hover { background-color: #f8fcf9; }
 
-/* Center the badge inside the table cell */
+/* Badge */
 .badge { 
     padding: 6px 12px; 
     border-radius: 20px; 
@@ -142,99 +138,24 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
 .recommendation-card .subtext { background: rgba(255,255,255,0.1); color: #d8f3dc; border: none; }
 
 /* Mobile Header Styles - Hidden by default on desktop */
-.mobile-navbar {
-    display: none;
-}
+.mobile-navbar { display: none; }
 
-/* Hide overlay by default */
-.sidebar-overlay {
-    display: none !important;
-}
+/* Sidebar Overlay */
+.sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+.sidebar-overlay.show { display: block; }
 
 /* Desktop view - show the normal sidebar */
 @media (min-width: 992px) {
-    .mobile-navbar {
-        display: none !important;
-    }
-    
-    .sidebar {
-        position: fixed !important;
-        left: 0 !important;
-        width: 250px !important;
-        margin-left: 0 !important;
-        transform: none !important;
-    }
-    
-    .main-content {
-        margin-left: 250px !important;
-        width: calc(100% - 250px) !important;
-        padding: 40px !important;
-    }
+    .mobile-navbar { display: none !important; }
+    .sidebar { position: fixed !important; left: 0 !important; width: 250px !important; margin-left: 0 !important; transform: none !important; }
+    .main-content { margin-left: 250px !important; width: calc(100% - 250px) !important; padding: 40px !important; }
 }
 
-/* Show on mobile only */
+/* Mobile styles */
 @media (max-width: 991px) {
-    .mobile-navbar {
-        display: flex !important;
-        background: #0d3b2e !important;
-        padding: 10px 15px !important;
-        width: 100% !important;
-        max-width: 100vw !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        z-index: 1001 !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        color: white !important;
-        box-sizing: border-box !important;
-        margin: 0 !important;
-        border: none !important;
-    }
-}
-
-.mobile-logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.menu-btn {
-    background: none !important;
-    border: none !important;
-    cursor: pointer !important;
-    padding: 5px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-.menu-btn img {
-    display: block !important;
-}
-
-/* Sidebar Overlay */
-.sidebar-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 999;
-}
-
-.sidebar-overlay.show { display: block; }
-
-/* Responsive Media Query - Make it work on all screen sizes */
-@media (max-width: 991px) {
-    html, body {
-        width: 100%;
-        overflow-x: hidden;
-    }
+    html, body { width: 100%; overflow-x: hidden; }
     
+    /* Mobile navbar */
     .mobile-navbar {
         display: flex !important;
         background: #0d3b2e !important;
@@ -253,7 +174,7 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
         border: none !important;
     }
     
-    /* Add padding to main content to account for fixed navbar */
+    /* Main content with padding for fixed navbar */
     .main-content {
         margin-left: 0 !important;
         width: 100% !important;
@@ -262,28 +183,14 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
         box-sizing: border-box !important;
     }
     
-    /* Responsive card grid - single column on mobile */
-    .card-grid {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 15px !important;
-    }
+    /* Responsive card grid */
+    .card-grid { display: flex !important; flex-direction: column !important; gap: 15px !important; }
     
-    .sidebar-overlay {
-        display: none !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        background: rgba(0,0,0,0.5) !important;
-        z-index: 999 !important;
-    }
+    /* Sidebar overlay */
+    .sidebar-overlay { display: none !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; background: rgba(0,0,0,0.5) !important; z-index: 999 !important; }
+    .sidebar-overlay.show { display: block !important; }
     
-    .sidebar-overlay.show {
-        display: block !important;
-    }
-    
+    /* Sidebar */
     .sidebar {
         position: fixed !important;
         left: 0 !important;
@@ -300,111 +207,79 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
         flex-direction: column !important;
     }
     
-    .sidebar.active {
-        transform: translateX(0) !important;
-    }
+    .sidebar.active { transform: translateX(0) !important; }
+    .sidebar h2 { display: none !important; }
     
-    .sidebar h2 {
-        display: none !important;
-    }
+    /* Content area */
+    .content-area { margin-left: 0 !important; width: 100% !important; padding: 70px 15px 20px 15px !important; display: block !important; box-sizing: border-box !important; }
     
-    /* Content shows normally */
-    .content-area {
-        margin-left: 0 !important;
-        width: 100% !important;
-        padding: 70px 15px 20px 15px !important;
-        display: block !important;
-        box-sizing: border-box !important;
-    }
-    
-    /* Cards fully visible */
+    /* Cards */
     .card {
         padding: 20px !important;
         border-radius: 8px !important;
         border: 1px solid #e2e8f0 !important;
         border-top: 5px solid #40916c !important;
         width: 100% !important;
-        margin-bottom: 0 !important;
+        margin-bottom: 15px !important;
         box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
         background-color: white !important;
         z-index: 1 !important;
     }
     
+    /* Header - SHOW on mobile but make it responsive */
     .header {
-        display: none !important;
-    }
-    
-    /* Fix recommendation grid visibility */
-    .recommendation-grid {
-        display: grid !important;
-        grid-template-columns: 1fr !important;
-        gap: 15px !important;
-    }
-    
-    /* Fix crop card visibility */
-    .crop-card {
-        background: white !important;
-        padding: 20px !important;
-        border-radius: 8px !important;
-    }
-    
-    /* Fix hero section */
-    .recommendation-hero {
-        padding: 20px !important;
-        border-radius: 8px !important;
-    }
-    
-    .hero-content {
+        display: flex !important;
         flex-direction: column !important;
-        text-align: center !important;
         gap: 15px !important;
+        margin-bottom: 20px !important;
+        padding-bottom: 15px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
     }
     
-    .hero-name {
-        font-size: 24px !important;
+    .header h1 { font-size: 20px !important; margin-bottom: 5px !important; }
+    
+    .header > div {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        width: 100% !important;
     }
     
-    /* Fix table scrolling */
-    .log-table {
-        font-size: 12px !important;
+    .header form {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        width: 100% !important;
     }
     
-    .log-table th, .log-table td {
+    .header input[type="date"] {
+        width: 100% !important;
         padding: 10px !important;
-    }
-    
-    /* Ensure chart is visible on mobile */
-    #weatherTrendChart {
-        max-width: 100% !important;
-        height: auto !important;
-    }
-    
-    .card > div:first-child {
-        overflow-x: auto !important;
-    }
-}
-
-/* Extra small screens */
-@media (max-width: 480px) {
-    .card {
-        padding: 15px !important;
-        margin-bottom: 10px !important;
-    }
-    
-    .mobile-navbar {
-        padding: 8px 12px !important;
-    }
-    
-    .mobile-logo {
         font-size: 14px !important;
     }
-}
-
-/* =========================================
-   MOBILE TABLE SCROLL FIX FOR DATA LOGS
-   ========================================= */
-@media (max-width: 991px) {
-    /* Make table container scrollable on mobile */
+    
+    .header .export-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 12px 20px !important;
+    }
+    
+    /* Recommendation grid */
+    .recommendation-grid { display: grid !important; grid-template-columns: 1fr !important; gap: 15px !important; }
+    
+    /* Crop card */
+    .crop-card { background: white !important; padding: 20px !important; border-radius: 8px !important; }
+    
+    /* Hero section */
+    .recommendation-hero { padding: 20px !important; border-radius: 8px !important; }
+    .hero-content { flex-direction: column !important; text-align: center !important; gap: 15px !important; }
+    .hero-name { font-size: 24px !important; }
+    
+    /* Chart */
+    #weatherTrendChart { max-width: 100% !important; height: auto !important; }
+    .card > div:first-child { overflow-x: auto !important; }
+    
+    /* Table wrapper for scroll */
     .log-table-wrapper {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
@@ -413,64 +288,22 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     
-    .log-table {
-        min-width: 600px !important;
-        font-size: 11px !important;
-    }
+    .log-table { min-width: 600px !important; font-size: 11px !important; }
+    .log-table th, .log-table td { padding: 8px 10px !important; white-space: nowrap !important; }
     
-    .log-table th, .log-table td {
-        padding: 8px 10px !important;
-        white-space: nowrap !important;
-    }
+    /* Form rows */
+    .form-row { flex-direction: column !important; gap: 10px !important; }
+    .form-group { width: 100% !important; }
     
-    /* Ensure form elements are responsive */
-    .form-row {
-        flex-direction: column !important;
-        gap: 10px !important;
-    }
-    
-    .form-group {
-        width: 100% !important;
-    }
-    
-    /* Settings page - make it consistent */
-    .settings-group {
-        padding: 15px !important;
-        margin-bottom: 15px !important;
-    }
-    
-    .settings-group h3 {
-        font-size: 14px !important;
-        margin-bottom: 15px !important;
-    }
-    
-    /* Date picker and buttons on mobile */
-    .header > div {
-        flex-direction: column !important;
-        gap: 10px !important;
-    }
-    
-    .header form {
-        width: 100% !important;
-        flex-direction: column !important;
-    }
-    
-    .header .export-btn {
-        width: 100% !important;
-        justify-content: center !important;
-    }
-    
-    /* Ensure body background is consistent */
-    body {
-        background-color: transparent !important;
-    }
+    /* Settings group */
+    .settings-group { padding: 15px !important; margin-bottom: 15px !important; }
+    .settings-group h3 { font-size: 14px !important; margin-bottom: 15px !important; }
 }
 
-/* Table wrapper for horizontal scroll */
-.log-table-wrapper {
-    overflow-x: auto;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+/* Extra small screens */
+@media (max-width: 480px) {
+    .card { padding: 15px !important; margin-bottom: 10px !important; }
+    .mobile-navbar { padding: 8px 12px !important; }
+    .mobile-logo { font-size: 14px !important; }
+    .header h1 { font-size: 18px !important; }
 }
-
-

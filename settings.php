@@ -24,7 +24,7 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 <head>
     <meta charset="UTF-8">
     <title>AgriSense - Settings</title>
-    <link rel="stylesheet" href="static/style.css?v=13">
+<link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
     <!-- Settings page uses global styles from style.css for consistency -->
     <style>
         /* Mobile-specific overrides - handled by global CSS */
