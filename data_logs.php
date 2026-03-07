@@ -33,44 +33,9 @@ $logs = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriSense - Data Logs</title>
     <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
+    <!-- Data logs page uses global styles from style.css for consistency -->
     <style>
-        /* Local Table Styles - Centered with Green Header */
-        .log-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 20px; 
-            background: white; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
-            border: 1px solid #e2e8f0; 
-        }
-
-        /* Centered Green Header Row */
-        .log-table th { 
-            background: #1b4332; 
-            color: #d8f3dc; 
-            text-align: center; 
-            padding: 18px 20px; 
-            font-weight: 700; 
-            font-size: 13px; 
-            letter-spacing: 0.5px; 
-            text-transform: uppercase; 
-        }
-
-        /* Centered Data Cells */
-        .log-table td { 
-            padding: 15px 20px; 
-            border-bottom: 1px solid #f0f4f8; 
-            color: #2c3e50; 
-            font-size: 15px; 
-            text-align: center; 
-        }
-
-        .log-table tr:last-child td { border-bottom: none; }
-        .log-table tr:hover { background-color: #f8fcf9; }
-        
-        .badge { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; background: #d8f3dc; color: #1b4332; text-transform: uppercase; display: inline-block; }
+        /* Export button specific styles */
         .export-btn { background: #2d6a4f; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; border: none; cursor: pointer; }
         .export-btn:hover { background: #1b4332; transform: translateY(-2px); }
     </style>
@@ -106,64 +71,66 @@ $logs = $stmt->fetchAll();
                 <p style="color: #95a5a6;">No data logged yet for <?php echo htmlspecialchars($selected_date); ?>.</p>
             </div>
         <?php else: ?>
-            <table class="log-table">
-                <thead>
-                    <tr>
-                        <th>Created At</th>
-                        <th>Temperature</th>
-                        <th>Humidity</th>
-                        <th>Rain (14‑Day)</th>
-                        <th>Ideal Crop</th>
-                        <th>Event Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($logs as $log): ?>
-                    <tr>
-                        <td style="font-weight: 600; color: #40916c;">
-                            <?php echo date("H:i:s", strtotime($log['created_at'])); ?>
-                        </td>
-                        <td><?php echo number_format($log['temp'], 1); ?> °C</td>
-                        <td><?php echo number_format($log['hum'], 1); ?> %</td>
-                        <td><?php echo isset($log['rain_forecast']) ? number_format($log['rain_forecast'], 1) . ' mm' : '--'; ?></td>
-                        <td>
-                            <?php
-                            // Derive the ideal crop using the SAME logic as dashboard/recommendations
-                            $temp = (float)$log['temp'];
-                            $hum  = (float)$log['hum'];
-                            $rain = isset($log['rain_forecast']) ? (float)$log['rain_forecast'] : 0.0;
+            <div class="log-table-wrapper">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Created At</th>
+                            <th>Temperature</th>
+                            <th>Humidity</th>
+                            <th>Rain (14‑Day)</th>
+                            <th>Ideal Crop</th>
+                            <th>Event Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($logs as $log): ?>
+                        <tr>
+                            <td style="font-weight: 600; color: #40916c;">
+                                <?php echo date("H:i:s", strtotime($log['created_at'])); ?>
+                            </td>
+                            <td><?php echo number_format($log['temp'], 1); ?> °C</td>
+                            <td><?php echo number_format($log['hum'], 1); ?> %</td>
+                            <td><?php echo isset($log['rain_forecast']) ? number_format($log['rain_forecast'], 1) . ' mm' : '--'; ?></td>
+                            <td>
+                                <?php
+                                // Derive the ideal crop using the SAME logic as dashboard/recommendations
+                                $temp = (float)$log['temp'];
+                                $hum  = (float)$log['hum'];
+                                $rain = isset($log['rain_forecast']) ? (float)$log['rain_forecast'] : 0.0;
 
-                            $season = get_current_season($temp, $hum, $rain, $rain_threshold);
+                                $season = get_current_season($temp, $hum, $rain, $rain_threshold);
 
-                            $ranked = [];
-                            foreach ($CROP_DATABASE as $crop) {
-                                if (in_array($season, $crop['seasons'])) {
-                                    $avgIdeal = (array_sum($crop['ideal_temp']) / 2);
-                                    $score = 100 - (abs($temp - $avgIdeal) * 5);
-                                    $ranked[] = [
-                                        'name' => $crop['name'],
-                                        'match' => max(0, (int)$score)
-                                    ];
+                                $ranked = [];
+                                foreach ($CROP_DATABASE as $crop) {
+                                    if (in_array($season, $crop['seasons'])) {
+                                        $avgIdeal = (array_sum($crop['ideal_temp']) / 2);
+                                        $score = 100 - (abs($temp - $avgIdeal) * 5);
+                                        $ranked[] = [
+                                            'name' => $crop['name'],
+                                            'match' => max(0, (int)$score)
+                                        ];
+                                    }
                                 }
-                            }
 
-                            if (!empty($ranked)) {
-                                usort($ranked, function($a, $b) {
-                                    if ($a['match'] == $b['match']) return strcmp($a['name'], $b['name']);
-                                    return $b['match'] <=> $a['match'];
-                                });
-                                $ideal = $ranked[0]['name'] . " (" . $season . ")";
-                                echo htmlspecialchars($ideal);
-                            } else {
-                                echo '--';
-                            }
-                            ?>
-                        </td>
-                        <td><span class="badge">Recorded</span></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                                if (!empty($ranked)) {
+                                    usort($ranked, function($a, $b) {
+                                        if ($a['match'] == $b['match']) return strcmp($a['name'], $b['name']);
+                                        return $b['match'] <=> $a['match'];
+                                    });
+                                    $ideal = $ranked[0]['name'] . " (" . $season . ")";
+                                    echo htmlspecialchars($ideal);
+                                } else {
+                                    echo '--';
+                                }
+                                ?>
+                            </td>
+                            <td><span class="badge">Recorded</span></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         <?php endif; ?>
     </div>
     <script src="static/js/app.js?v=<?php echo time(); ?>"></script>

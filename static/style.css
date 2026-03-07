@@ -400,4 +400,77 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     }
 }
 
+/* =========================================
+   MOBILE TABLE SCROLL FIX FOR DATA LOGS
+   ========================================= */
+@media (max-width: 991px) {
+    /* Make table container scrollable on mobile */
+    .log-table-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .log-table {
+        min-width: 600px !important;
+        font-size: 11px !important;
+    }
+    
+    .log-table th, .log-table td {
+        padding: 8px 10px !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Ensure form elements are responsive */
+    .form-row {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    
+    .form-group {
+        width: 100% !important;
+    }
+    
+    /* Settings page - make it consistent */
+    .settings-group {
+        padding: 15px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .settings-group h3 {
+        font-size: 14px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    /* Date picker and buttons on mobile */
+    .header > div {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    
+    .header form {
+        width: 100% !important;
+        flex-direction: column !important;
+    }
+    
+    .header .export-btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    /* Ensure body background is consistent */
+    body {
+        background-color: transparent !important;
+    }
+}
+
+/* Table wrapper for horizontal scroll */
+.log-table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
 

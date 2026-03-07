@@ -25,31 +25,9 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
     <meta charset="UTF-8">
     <title>AgriSense - Settings</title>
     <link rel="stylesheet" href="static/style.css?v=13">
+    <!-- Settings page uses global styles from style.css for consistency -->
     <style>
-        /* ADDED: Background contrast and sharper card definition to prevent blending */
-        body { background-color: #f0f4f2 !important; }
-
-        .settings-group { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 12px; 
-            margin-bottom: 25px; 
-            /* Enhanced shadow and border for depth */
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
-            border: 1px solid #d1dbd4;
-            border-left: 5px solid #40916c; 
-        }
-
-        /* Restored original styles */
-        .settings-group h3 { color: #1b4332; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 18px; }
-        .form-row { display: flex; gap: 20px; margin-bottom: 15px; }
-        .form-group { flex: 1; }
-        .form-group label { display: block; font-size: 12px; color: #748c94; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #fff; color: #2c3e50; transition: border-color 0.3s; }
-        .form-group input:focus { border-color: #40916c; outline: none; }
-        .form-group input:disabled { background: #f1f5f9; cursor: not-allowed; opacity: 0.7; border-color: #e2e8f0; }
-        .btn-save { background: #2d6a4f; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; font-size: 14px; }
-        .btn-save:hover { background: #1b4332; transform: translateY(-2px); }
+        /* Mobile-specific overrides - handled by global CSS */
     </style>
 </head>
 <body>
