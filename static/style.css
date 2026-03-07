@@ -96,56 +96,61 @@
 .form-group { flex: 1; }
 .form-group input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
 
+/* Settings Form Styles - Desktop */
+.settings-group { background: white; padding: 30px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #40916c; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+.form-row { display: flex; gap: 20px; margin-bottom: 15px; }
+.form-group { flex: 1; }
+.form-group label { display: block; font-size: 11px; color: #748c94; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+.form-group input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #fbfcfd; }
+
 /* =========================================
-   MOBILE RESPONSIVE OVERRIDE
+    MOBILE RESPONSIVE OVERRIDE 
    ========================================= */
 
 @media (max-width: 768px) {
-    /* Stack Sidebar as a top navigation */
+    /* 1. Sidebar becomes a compact top-nav */
     .sidebar {
         width: 100%;
         height: auto;
         position: relative;
         padding: 15px;
+        flex-direction: column;
     }
     
-    .sidebar h2 { margin-bottom: 15px; font-size: 18px; }
-    .sidebar-label { display: none; } /* Saves space on mobile */
+    .sidebar h2 { margin-bottom: 15px; font-size: 20px; }
+    .sidebar-label { display: none; } 
     
+    /* Ensure the Log Out is visible and doesn't push the page down too far */
     .sidebar-bottom {
         margin-top: 10px;
         border-top: 1px solid rgba(255,255,255,0.1);
-        padding-top: 10px;
+        padding: 10px 0;
     }
 
-    /* REMOVE THE GAP: This fixes your squished content */
+    /* 2. Remove the side gap so Settings fill the screen */
     .main-content {
         margin-left: 0;
         width: 100%;
         padding: 15px;
     }
 
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+    /* 3. SETTINGS FIX: Stack all input fields */
+    .settings-group {
+        padding: 20px;
+        margin-bottom: 15px;
     }
 
-    /* Fix Table overflow */
-    .log-table {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    /* Stack form inputs */
     .form-row {
-        flex-direction: column;
-        gap: 10px;
+        flex-direction: column; /* This stacks Target Location, Lat, and Long */
+        gap: 15px;
+        margin-bottom: 0;
     }
 
-    .hero-content {
-        flex-direction: column;
-        text-align: center;
+    .form-group {
+        width: 100%;
     }
+
+    /* 4. Adjust typography for smaller screens */
+    .header h1 { font-size: 22px; }
+    .hero-name { font-size: 24px; }
 }
