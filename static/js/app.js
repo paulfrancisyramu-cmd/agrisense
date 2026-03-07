@@ -220,46 +220,11 @@ function enableLiveUpdates() {
     }, 3000); 
 }
 
-// 5. MOBILE NAVIGATION LOGIC (NEW)
 // ==========================================
-function toggleMenu() {
-    const sidebar = document.querySelector('.sidebar');
-    const toggleBtn = document.querySelector('.mobile-toggle');
-    
-    if (!sidebar) return;
-
-    sidebar.classList.toggle('active');
-
-    // Update button text for better UX
-    if (sidebar.classList.contains('active')) {
-        toggleBtn.innerHTML = "✕ Close";
-    } else {
-        toggleBtn.innerHTML = "☰ Menu";
-    }
-}
-
-// Close sidebar automatically when a link is clicked (important for mobile)
-function initMobileNav() {
-    const sidebarLinks = document.querySelectorAll('.sidebar a');
-    sidebarLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            if (window.innerWidth <= 1024) {
-                const sidebar = document.querySelector('.sidebar');
-                const toggleBtn = document.querySelector('.mobile-toggle');
-                sidebar.classList.remove('active');
-                toggleBtn.innerHTML = "☰ Menu";
-            }
-        });
-    });
-}
-
-// ==========================================
-// 6. INITIALIZATION (UPDATED)
+// 5. INITIALIZATION
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     enableLiveUpdates();
-    initMobileNav(); // Initialize the link listeners
-
     let path = window.location.pathname.split('/').pop();
     if (path === 'dashboard.php' || path === '') {
         const canvas = document.getElementById('weatherTrendChart');
