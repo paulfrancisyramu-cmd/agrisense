@@ -46,40 +46,28 @@
 <script>
 // Wait for DOM to load
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle sidebar and overlay
     const menuToggle = document.getElementById('menu-toggle');
     const mainSidebar = document.getElementById('main-sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
-    const sidebarLinks = mainSidebar ? mainSidebar.querySelectorAll('a') : [];
 
     if (menuToggle && mainSidebar && sidebarOverlay) {
         menuToggle.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
             mainSidebar.classList.toggle('active');
             sidebarOverlay.classList.toggle('show');
         });
 
-        // Close sidebar when clicking overlay
         sidebarOverlay.addEventListener('click', function() {
             mainSidebar.classList.remove('active');
             sidebarOverlay.classList.remove('show');
         });
 
-        // Close sidebar when clicking a link
-        sidebarLinks.forEach(link => {
+        mainSidebar.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', function() {
                 mainSidebar.classList.remove('active');
                 sidebarOverlay.classList.remove('show');
             });
         });
     }
-});
-</script>
-</script>
-    link.addEventListener('click', function() {
-        mainSidebar.classList.remove('active');
-        sidebarOverlay.classList.remove('show');
-    });
 });
 </script>

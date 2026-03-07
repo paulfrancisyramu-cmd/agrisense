@@ -194,8 +194,27 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
 
 .sidebar-overlay.show { display: block; }
 
-/* Responsive Media Query */
+/* Responsive Media Query - Make it work on all screen sizes */
 @media (max-width: 991px) {
+    html, body {
+        width: 100%;
+        overflow-x: hidden;
+    }
+    
+    .mobile-navbar {
+        display: flex !important;
+        background: #0d3b2e !important;
+        padding: 10px 15px !important;
+        width: 100% !important;
+        position: static !important;
+        z-index: 1001 !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        color: white !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        border: none !important;
+    }
     
     .sidebar {
         position: fixed !important;
@@ -208,31 +227,33 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
         transition: transform 0.3s ease !important;
         transform: translateX(-100%) !important;
         overflow-y: auto !important;
-        padding: 25px 20px !important;
+        padding: 80px 20px 20px 20px !important;
         display: flex !important;
         flex-direction: column !important;
     }
     
     .sidebar.active {
-        transform: translateX(0) !important; /* Slide in from left */
+        transform: translateX(0) !important;
     }
     
-    /* Full width mobile content */
+    .sidebar h2 {
+        display: none !important;
+    }
+    
+    /* Content shows normally */
     .main-content, .content-area {
         margin-left: 0 !important;
         width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 !important;
+        padding: 15px !important;
         display: block !important;
-        margin-top: 55px !important; /* Account for fixed mobile navbar */
         box-sizing: border-box !important;
     }
     
-    /* Cards fill full width with edge-to-edge green bar */
+    /* Cards adapt to mobile */
     .card {
         padding: 20px;
-        border-radius: 0;
-        border: none;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
         border-top: 5px solid #40916c;
         width: 100%;
         margin-bottom: 15px;
@@ -244,7 +265,7 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     }
 }
 
-/* Extra small screens (phones in portrait) */
+/* Extra small screens */
 @media (max-width: 480px) {
     .card {
         padding: 15px;
@@ -252,11 +273,12 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     }
     
     .mobile-navbar {
-        padding: 8px 12px;
+        padding: 8px 12px !important;
     }
     
     .mobile-logo {
-        font-size: 16px;
+        font-size: 14px;
     }
 }
+
 
