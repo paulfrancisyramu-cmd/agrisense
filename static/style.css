@@ -140,20 +140,27 @@
 .recommendation-card .value { color: white; font-size: 28px; }
 .recommendation-card .subtext { background: rgba(255,255,255,0.1); color: #d8f3dc; border: none; }
 
-/* Mobile Header Styles */
+/* Mobile Header Styles - Hidden by default on desktop */
 .mobile-navbar {
-    display: none; /* Hidden on desktop */
-    background: #0d3b2e; /* Match your sidebar green */
-    padding: 10px 15px;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 1001;
-    box-sizing: border-box;
+    display: none;
+}
+
+/* Show on mobile only */
+@media (max-width: 991px) {
+    .mobile-navbar {
+        display: flex !important;
+        background: #0d3b2e;
+        padding: 10px 15px;
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1001;
+        box-sizing: border-box;
+    }
 }
 
 .mobile-logo {
@@ -184,7 +191,6 @@
 
 /* Responsive Media Query */
 @media (max-width: 991px) {
-    .mobile-navbar { display: flex; }
     
     .sidebar {
         position: fixed;

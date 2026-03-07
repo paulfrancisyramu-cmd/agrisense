@@ -44,9 +44,33 @@
 </div>
 
 <script>
-// Simple script to toggle the sidebar
-document.getElementById('menu-toggle').addEventListener('click', function() {
-    document.getElementById('main-sidebar').classList.toggle('active');
-    document.getElementById('sidebar-overlay').classList.toggle('show');
+// Toggle sidebar and overlay
+const menuToggle = document.getElementById('menu-toggle');
+const mainSidebar = document.getElementById('main-sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const sidebarLinks = mainSidebar.querySelectorAll('a');
+
+if (menuToggle) {
+    menuToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        mainSidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('show');
+    });
+}
+
+// Close sidebar when clicking overlay
+if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', function() {
+        mainSidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('show');
+    });
+}
+
+// Close sidebar when clicking a link
+sidebarLinks.forEach(link => {
+    link.addEventListener('click', function() {
+        mainSidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('show');
+    });
 });
 </script>
