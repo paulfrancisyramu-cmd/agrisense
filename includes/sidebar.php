@@ -46,7 +46,7 @@
 <script>
 // Simple script to toggle the sidebar
 document.getElementById('menu-toggle').addEventListener('click', function() {
-    document.getElementById('main-sidebar').classList.toggle('open');
+    document.getElementById('main-sidebar').classList.toggle('active');
     document.getElementById('sidebar-overlay').classList.toggle('show');
 });
 
