@@ -7,12 +7,6 @@ if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 date_default_timezone_set('Asia/Manila');
 
 include 'includes/db_connect.php';
-include 'includes/crops.php';
-include 'includes/dss_logic.php';
-
-// Load rainfall threshold once so we can reuse the same season logic per row
-$settings = $conn->query("SELECT rain_threshold FROM system_settings WHERE id=1")->fetch();
-$rain_threshold = $settings ? (float)$settings['rain_threshold'] : 15.0;
 
 // Get today's date in YYYY-MM-DD format based on Manila time
 $today = date('Y-m-d');
@@ -30,7 +24,6 @@ $logs = $stmt->fetchAll();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriSense - Data Logs</title>
     <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
     <style>
@@ -113,7 +106,7 @@ $logs = $stmt->fetchAll();
                         <th>Temperature</th>
                         <th>Humidity</th>
                         <th>Rain (14‑Day)</th>
-                        <th>Ideal Crop</th>
+                        <th>Most Suitable Crop</th>
                         <th>Event Status</th>
                     </tr>
                 </thead>
@@ -128,35 +121,12 @@ $logs = $stmt->fetchAll();
                         <td><?php echo isset($log['rain_forecast']) ? number_format($log['rain_forecast'], 1) . ' mm' : '--'; ?></td>
                         <td>
                             <?php
-                            // Derive the ideal crop using the SAME logic as dashboard/recommendations
-                            $temp = (float)$log['temp'];
-                            $hum  = (float)$log['hum'];
-                            $rain = isset($log['rain_forecast']) ? (float)$log['rain_forecast'] : 0.0;
-
-                            $season = get_current_season($temp, $hum, $rain, $rain_threshold);
-
-                            $ranked = [];
-                            foreach ($CROP_DATABASE as $crop) {
-                                if (in_array($season, $crop['seasons'])) {
-                                    $avgIdeal = (array_sum($crop['ideal_temp']) / 2);
-                                    $score = 100 - (abs($temp - $avgIdeal) * 5);
-                                    $ranked[] = [
-                                        'name' => $crop['name'],
-                                        'match' => max(0, (int)$score)
-                                    ];
+                                // recommendation field looks like "Plant Gabi (Hot Dry)" – extract crop name
+                                $cropLabel = $log['recommendation'] ?? '';
+                                if (strpos($cropLabel, 'Plant ') === 0) {
+                                    $cropLabel = substr($cropLabel, 6);
                                 }
-                            }
-
-                            if (!empty($ranked)) {
-                                usort($ranked, function($a, $b) {
-                                    if ($a['match'] == $b['match']) return strcmp($a['name'], $b['name']);
-                                    return $b['match'] <=> $a['match'];
-                                });
-                                $ideal = $ranked[0]['name'] . " (" . $season . ")";
-                                echo htmlspecialchars($ideal);
-                            } else {
-                                echo '--';
-                            }
+                                echo htmlspecialchars($cropLabel);
                             ?>
                         </td>
                         <td><span class="badge">Recorded</span></td>

@@ -1,8 +1,6 @@
 <?php
 // recommendations.php
 session_start();
-// Match timezone with dashboard.php and api/save_data.php so heartbeat math is consistent
-date_default_timezone_set('Asia/Manila');
 if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 
 include 'includes/db_connect.php';
@@ -13,16 +11,15 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
-// --- HARDWARE FRESHNESS CHECK (MATCHES DASHBOARD) ---
+// Use the same heartbeat table as dashboard/devices so recommendations
+// only stay live while the ESP32 is actually checking in.
 $hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
 $current_time = time();
 $last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
 $timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
-$is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
 
-// Recommendations are only allowed when hardware is live AND we actually have a temp+hum row.
-$has_sensor_row = ($latest && isset($latest['temp'], $latest['hum']));
-$no_data = (!$is_live || !$has_sensor_row);
+$is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
+$no_data = (!$is_live || !$latest);
 
 
 // --- FAKE DATA FOR TESTING ---
@@ -36,8 +33,7 @@ $latest['hum'] = 82.0;   // Try changing this (e.g., 60.0 for cool)
 $top_crop = null;
 $other_crops = [];
 
-// Only run the crop ranking when there is live hardware AND valid sensor data.
-if (!$no_data) {
+if ($is_live) {
     $current_temp = (float)$latest['temp'];
     $current_hum = (float)$latest['hum'];
     $active_season = get_current_season($current_temp, $current_hum, $weather['two_week_total'], $settings['rain_threshold']);
@@ -73,7 +69,6 @@ if (!$no_data) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriSense - Recommendations</title>
     <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
 </head>
