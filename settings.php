@@ -109,7 +109,10 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
                 <p style="font-size: 12px; color: #95a5a6; margin-top: 5px;">* Adjusting these triggers will instantly alter how the system generates crop recommendations and system alerts.</p>
             </div>
             
-            <button type="submit" class="btn-save" onclick="alert('Configuration saved securely. DSS rules updated.')">Save Changes</button>
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
+                <button type="submit" class="btn-save" onclick="alert('Configuration saved securely. DSS rules updated.')">Save Changes</button>
+                <a href="logout.php" class="btn-save" style="background:#d90429;">Log Out</a>
+            </div>
         </form>
 
     </div>
