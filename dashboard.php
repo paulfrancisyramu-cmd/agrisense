@@ -14,8 +14,7 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
-// Heartbeat: track device "alive" status separately from data logging.
-// Uses device_heartbeat.last_seen which updates every ESP32 POST.
+// Heartbeat tracking
 $hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
 $current_time = time();
 $last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
@@ -30,22 +29,8 @@ $sensor_data = [
     'active_season' => 'Stable',
     'is_live' => $is_live
 ];
-// -----------------------------
 
-// --- FAKE DATA FOR TESTING ---
-/*
-$sensor_data = [
-    'temperature' => 31.5,  // Try changing this (e.g., 18.0 for cool)
-    'humidity' => 82.0,     // Try changing this (e.g., 60.0 for cool)
-    'rain_array' => $weather['rain_array'],
-    'forecast_trend' => $weather['forecast_trend'],
-    'active_season' => 'Stable',
-    'is_live' => true       // Forces the dashboard to show "Live reading active"
-];
-// -----------------------------
-*/
 $top_crop = null;
-// Only run the recommendation algorithm if we actually have live hardware data
 if ($sensor_data['temperature'] !== "--") {
     $current_temp = (float)$sensor_data['temperature'];
     $current_hum = (float)$sensor_data['humidity'];
@@ -66,7 +51,6 @@ if ($sensor_data['temperature'] !== "--") {
     }
     if (!empty($ranked)) {
         usort($ranked, function($a, $b) { 
-            // Add the alphabetical tie-breaker here too!
             if ($a['match'] == $b['match']) return strcmp($a['name'], $b['name']);
             return $b['match'] <=> $a['match']; 
         });
@@ -79,42 +63,46 @@ if ($sensor_data['temperature'] !== "--") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AgriSense - Dashboard</title>
     <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <button class="mobile-toggle" onclick="toggleMenu()">☰ Menu</button>
+
     <?php include 'includes/sidebar.php'; ?>
 
     <div class="main-content">
         <div class="header">
             <h1>Field Conditions</h1>
-            <div class="status">System Online</div>
+            <div class="status" style="<?php echo $is_live ? '' : 'background: #ffdce0; color: #d90429;'; ?>">
+                <?php echo $is_live ? 'System Online' : 'Hardware Offline'; ?>
+            </div>
         </div>
 
-        <div class="card-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;">
+        <div class="card-grid dashboard-grid">
             
-            <div class="card" style="grid-column: 1 / -1;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
+            <div class="card chart-full-width">
+                <div class="chart-header">
+                    <h3 class="flex-center gap-8">
                         <img src="https://unpkg.com/lucide-static@latest/icons/trending-up.svg" width="20" class="icon-green"> 
                         14-Day Precipitation Forecast
                     </h3>
                     
-                    <div id="rain-subtext" style="font-size: 12px; font-weight: bold; background: #f1f7f5; color: #40916c; padding: 6px 12px; border-radius: 20px;">
+                    <div id="rain-subtext" class="trend-badge">
                         <?php echo $sensor_data['forecast_trend'] ? $sensor_data['forecast_trend'] : "Stable Conditions"; ?>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 15px; font-size: 11px; margin-bottom: 20px; color: #8d99ae; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #0077b6; border-radius: 3px;"></span> Wet/Rainy</div>
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #e67e22; border-radius: 3px;"></span> Hot Dry</div>
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #2d6a4f; border-radius: 3px;"></span> Cool Dry</div>
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #8d99ae; border-radius: 3px;"></span> Stable</div>
+                <div class="legend-container">
+                    <div class="legend-item"><span class="dot rain"></span> Wet/Rainy</div>
+                    <div class="legend-item"><span class="dot hot"></span> Hot Dry</div>
+                    <div class="legend-item"><span class="dot cool"></span> Cool Dry</div>
+                    <div class="legend-item"><span class="dot stable"></span> Stable</div>
                 </div>
                 
-                <div style="width: 100%; height: 250px;">
+                <div class="chart-wrapper">
                    <canvas id="weatherTrendChart" 
                         data-rain="<?php echo htmlspecialchars(json_encode($sensor_data['rain_array'])); ?>"
                         data-season="<?php echo $sensor_data['active_season']; ?>">
@@ -124,40 +112,40 @@ if ($sensor_data['temperature'] !== "--") {
 
             <div class="card" id="card-temp">
                 <h3>TEMPERATURE</h3>
-                <div class="value"><?php echo $sensor_data['temperature']; ?> <span style="font-family: 'Poppins', sans-serif;">°C</span></div>
+                <div class="value"><?php echo $sensor_data['temperature']; ?> <span>°C</span></div>
                 <?php if ($sensor_data['is_live']): ?>
-                    <div class="subtext" style="color: #40916c; font-weight: 600;">Live reading active</div>
+                    <div class="subtext live-status">Live reading active</div>
                 <?php else: ?>
-                    <div class="subtext" style="color: #d90429; font-weight: 600;">⚠️ No Hardware Detected</div>
+                    <div class="subtext error-status">⚠️ No Hardware Detected</div>
                 <?php endif; ?>
             </div>
 
             <div class="card" id="card-hum">
                 <h3>HUMIDITY</h3>
-                <div class="value"><?php echo $sensor_data['humidity']; ?> <span style="font-family: 'Poppins', sans-serif;">%</span></div>
+                <div class="value"><?php echo $sensor_data['humidity']; ?> <span>%</span></div>
                 <?php if ($sensor_data['is_live']): ?>
-                    <div class="subtext" style="color: #40916c; font-weight: 600;">Live reading active</div>
+                    <div class="subtext live-status">Live reading active</div>
                 <?php else: ?>
-                    <div class="subtext" style="color: #d90429; font-weight: 600;">⚠️ No Hardware Detected</div>
+                    <div class="subtext error-status">⚠️ No Hardware Detected</div>
                 <?php endif; ?>
             </div>
 
             <div class="card recommendation-card" id="card-ideal-crop">
-                <h3 style="color: #d8f3dc;">IDEAL CROP</h3>
-                <div class="value" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                <h3 class="light-green-text">IDEAL CROP</h3>
+                <div class="value flex-center gap-15">
                     <?php if ($top_crop): ?>
-                        <img src="<?php echo $top_crop['image_url']; ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px;"> 
-                        <span style="font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 600; color: white !important; letter-spacing: 0.5px;"><?php echo $top_crop['name']; ?></span>
+                        <img src="<?php echo $top_crop['image_url']; ?>" class="crop-icon-circle"> 
+                        <span class="crop-title"><?php echo $top_crop['name']; ?></span>
                     <?php else: ?>
-                        <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 600; color: white !important;">Analyzing...</span>
+                        <span class="crop-title">Analyzing...</span>
                     <?php endif; ?>
                 </div>
                 <?php if ($top_crop): ?>
-                <div style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #d8f3dc; margin-top: 10px; font-weight: 500;">
+                <div class="req-text">
                     Ideal: <?php echo $top_crop['req_temp']; ?> | <?php echo $top_crop['req_hum']; ?>
                 </div>
                 <?php endif; ?>
-                <div class="subtext" style="font-family: 'Poppins', sans-serif; margin-top: 8px; color: #d8f3dc; background: transparent; padding: 0;">
+                <div class="subtext match-text">
                     <?php if ($top_crop): ?>
                         <?php echo $top_crop['match']; ?>% Match for current season
                     <?php else: ?>
@@ -168,6 +156,15 @@ if ($sensor_data['temperature'] !== "--") {
 
         </div> 
     </div> 
+
+    <script>
+        function toggleMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const btn = document.querySelector('.mobile-toggle');
+            sidebar.classList.toggle('active');
+            btn.innerText = sidebar.classList.contains('active') ? "✕ Close" : "☰ Menu";
+        }
+    </script>
     <script src="static/js/app.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
