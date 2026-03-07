@@ -141,45 +141,57 @@
 .recommendation-card .value { color: white; font-size: 28px; }
 .recommendation-card .subtext { background: rgba(255,255,255,0.1); color: #d8f3dc; border: none; }
 
-/* =========================================
-   MOBILE RESPONSIVENESS
-   ========================================= */
-@media (max-width: 1024px) {
-    /* 1. Hide the sidebar completely on mobile to save space */
+/* Mobile Header Styles */
+.mobile-navbar {
+    display: none; /* Hidden on desktop */
+    background: #0d3b2e; /* Match your sidebar green */
+    padding: 10px 15px;
+    align-items: center;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+}
+
+.sidebar-overlay.show { display: block; }
+
+/* Responsive Media Query */
+@media (max-width: 768px) {
+    .mobile-navbar { display: flex; }
+    
     .sidebar {
-        display: none; 
+        position: fixed;
+        left: -280px; /* Hide off-screen */
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        width: 280px;
     }
-
-    /* 2. Reset the main content margin so it uses the full screen */
-    .main-content {
-        margin-left: 0 !important;
+    
+    .sidebar.open {
+        left: 0; /* Slide in */
+    }
+    
+    /* Ensure charts/content don't require zooming */
+    .content-area {
         width: 100% !important;
-        padding: 20px !important;
-    }
-
-    /* 3. Stack the 3-column grid into 1 column */
-    .dashboard-grid, .card-grid {
-        grid-template-columns: 1fr !important;
-        gap: 15px !important;
-    }
-
-    /* 4. Ensure the Chart card takes up only its row */
-    .chart-full-width, .card[style*="grid-column: 1 / -1"] {
-        grid-column: 1 / -1 !important;
-    }
-
-    /* 5. Make the header stack vertically */
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    /* 6. Prevent table overflow (Zoom Fix) */
-    .log-table {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        padding: 10px !important;
     }
 }
