@@ -145,11 +145,23 @@
     display: none; /* Hidden on desktop */
     background: #0d3b2e; /* Match your sidebar green */
     padding: 10px 15px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
     color: white;
     position: sticky;
     top: 0;
     z-index: 1001;
+    box-sizing: border-box;
+}
+
+.mobile-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
 }
 
 .menu-btn {
