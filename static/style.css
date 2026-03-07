@@ -183,7 +183,7 @@
 .sidebar-overlay.show { display: block; }
 
 /* Responsive Media Query */
-@media (max-width: 768px) {
+@media (max-width: 991px) {
     .mobile-navbar { display: flex; }
     
     .sidebar {
@@ -194,9 +194,10 @@
         z-index: 1000;
         transition: left 0.3s ease;
         width: 280px;
+        overflow-y: auto; /* Allow scrolling if content is long */
     }
     
-    .sidebar.open {
+    .sidebar.active {
         left: 0; /* Slide in */
     }
     
@@ -221,6 +222,22 @@
     
     .header {
         display: none;
+    }
+}
+
+/* Extra small screens (phones in portrait) */
+@media (max-width: 480px) {
+    .card {
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+    
+    .mobile-navbar {
+        padding: 8px 12px;
+    }
+    
+    .mobile-logo {
+        font-size: 16px;
     }
 }
 
