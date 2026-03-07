@@ -30,6 +30,23 @@
 }
 .logout-btn { margin-bottom: 0 !important; }
 
+/* Mobile layout: stack sidebar on top and let whole page scroll */
+@media (max-width: 768px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        overflow-y: visible;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px 16px 40px;
+    }
+}
+
 /* Main Content Area */
 .main-content { margin-left: 250px; padding: 40px; width: calc(100% - 250px); }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
