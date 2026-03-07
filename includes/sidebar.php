@@ -76,8 +76,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-    }
-});
 </script>
     link.addEventListener('click', function() {
         mainSidebar.classList.remove('active');
