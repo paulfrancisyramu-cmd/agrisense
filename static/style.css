@@ -146,6 +146,32 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     display: none;
 }
 
+/* Hide overlay by default */
+.sidebar-overlay {
+    display: none !important;
+}
+
+/* Desktop view - show the normal sidebar */
+@media (min-width: 992px) {
+    .mobile-navbar {
+        display: none !important;
+    }
+    
+    .sidebar {
+        position: fixed !important;
+        left: 0 !important;
+        width: 250px !important;
+        margin-left: 0 !important;
+        transform: none !important;
+    }
+    
+    .main-content {
+        margin-left: 250px !important;
+        width: calc(100% - 250px) !important;
+        padding: 40px !important;
+    }
+}
+
 /* Show on mobile only */
 @media (max-width: 991px) {
     .mobile-navbar {
@@ -177,9 +203,17 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
 }
 
 .menu-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 5px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.menu-btn img {
+    display: block !important;
 }
 
 /* Sidebar Overlay */
@@ -216,6 +250,21 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
         border: none !important;
     }
     
+    .sidebar-overlay {
+        display: none !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: rgba(0,0,0,0.5) !important;
+        z-index: 999 !important;
+    }
+    
+    .sidebar-overlay.show {
+        display: block !important;
+    }
+    
     .sidebar {
         position: fixed !important;
         left: 0 !important;
@@ -223,7 +272,7 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
         width: 280px !important;
         height: 100vh !important;
         background-color: #1b4332 !important;
-        z-index: 1000 !important;
+        z-index: 1002 !important;
         transition: transform 0.3s ease !important;
         transform: translateX(-100%) !important;
         overflow-y: auto !important;
@@ -249,27 +298,68 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
         box-sizing: border-box !important;
     }
     
-    /* Cards adapt to mobile */
+    /* Cards fully visible */
     .card {
-        padding: 20px;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        border-top: 5px solid #40916c;
-        width: 100%;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        padding: 20px !important;
+        border-radius: 8px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-top: 5px solid #40916c !important;
+        width: 100% !important;
+        margin-bottom: 15px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+        background-color: white !important;
+        z-index: 1 !important;
     }
     
     .header {
-        display: none;
+        display: none !important;
+    }
+    
+    /* Fix recommendation grid visibility */
+    .recommendation-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+    
+    /* Fix crop card visibility */
+    .crop-card {
+        background: white !important;
+        padding: 20px !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Fix hero section */
+    .recommendation-hero {
+        padding: 20px !important;
+        border-radius: 8px !important;
+    }
+    
+    .hero-content {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 15px !important;
+    }
+    
+    .hero-name {
+        font-size: 24px !important;
+    }
+    
+    /* Fix table scrolling */
+    .log-table {
+        font-size: 12px !important;
+    }
+    
+    .log-table th, .log-table td {
+        padding: 10px !important;
     }
 }
 
 /* Extra small screens */
 @media (max-width: 480px) {
     .card {
-        padding: 15px;
-        margin-bottom: 10px;
+        padding: 15px !important;
+        margin-bottom: 10px !important;
     }
     
     .mobile-navbar {
@@ -277,7 +367,7 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     }
     
     .mobile-logo {
-        font-size: 14px;
+        font-size: 14px !important;
     }
 }
 
