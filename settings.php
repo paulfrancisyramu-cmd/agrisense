@@ -23,8 +23,22 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriSense - Settings</title>
     <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
+    <style>
+        /* Keep desktop styling exactly as before */
+        body { background-color: #f0f4f2; }
+        .settings-container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            border: 1px solid #d1dbd4;
+        }
+        .settings-container h3 { color: #1b4332; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 18px; }
+    </style>
 </head>
 <body>
     <?php include 'includes/sidebar.php'; ?>
@@ -36,7 +50,7 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 
         <form action="settings.php" method="POST">
             
-            <div class="settings-group">
+            <div class="settings-container">
                 <h3><img src="https://unpkg.com/lucide-static@latest/icons/map-pin.svg" width="20" class="icon-green"> Geographic Parameters</h3>
                 <div class="form-row">
                     <div class="form-group">
@@ -56,8 +70,8 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
                 </p>
             </div>
 
-            <div class="settings-group" style="border-left-color: #e67e22;">
-                <h3><img src="https://unpkg.com/lucide-static@latest/icons/triangle-alert.svg" width="20" class="icon-green"> Alert Thresholds (DSS Rules)</h3>
+            <div class="settings-container" style="border-left: 5px solid #e67e22;">
+                <h3><img src="https://unpkg.com/lucide-static@latest/icons/triangle-alert.svg" width="20" style="filter: brightness(0) saturate(100%) invert(48%) sepia(87%) saturate(1637%) hue-rotate(352deg) brightness(97%) contrast(88%);"> Alert Thresholds (DSS Rules)</h3>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Extreme Heat Trigger (°C)</label>
