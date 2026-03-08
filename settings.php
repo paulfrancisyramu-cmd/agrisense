@@ -2,6 +2,7 @@
 // settings.php
 session_start();
 if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
+if ($_SESSION['role'] !== 'admin') { header("Location: dashboard.php"); exit(); }
 include 'includes/db_connect.php';
 
 // Handle form submission to update settings

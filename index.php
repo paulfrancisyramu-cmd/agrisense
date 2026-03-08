@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $pass = $_POST['password'];
 
     // Query the database for the user (PDO)
-    $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = :username");
+    $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = :username");
     $stmt->execute([':username' => $user]);
     $data = $stmt->fetch();
 
@@ -24,6 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Compare passwords
         if ($pass === $data['password']) {
             $_SESSION['user_id'] = $data['id'];
+            $_SESSION['role'] = $data['role'];
             header("Location: dashboard.php");
             exit();
         } else {

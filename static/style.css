@@ -137,10 +137,45 @@
         width: 100% !important;
     }
 
+    /* Improve card padding on mobile */
+    .card {
+        padding: 20px !important;
+    }
+
+    .settings-group {
+        padding: 20px !important;
+    }
+
+    /* Header adjustments */
+    .header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+
+    .header h1 {
+        font-size: 24px !important;
+    }
+
     /* 4. Fix Logout visibility */
     .sidebar-bottom {
         margin-top: 15px !important;
         padding-top: 10px !important;
         border-top: 1px solid rgba(255,255,255,0.1) !important;
+    }
+
+    .logout-btn {
+        background-color: #d90429 !important;
+        color: white !important;
+        padding: 15px !important;
+        border-radius: 8px !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        display: block !important;
+        margin-top: 10px !important;
+    }
+
+    .logout-btn:hover {
+        background-color: #b00020 !important;
     }
 }

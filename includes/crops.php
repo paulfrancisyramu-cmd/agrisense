@@ -9,7 +9,7 @@ $CROP_DATABASE = [
     [
         "name" => "Cabbage", 
         "image_url" => "https://img.icons8.com/color/96/cabbage.png", 
-        "ideal_temp" => [10, 24], 
+        "ideal_temp" => [17, 24], 
         "ideal_hum" => [60, 90], 
         "seasons" => ["Wet/Rainy", "Cool Dry", "Hot Dry"]
     ],
