@@ -2,6 +2,16 @@
 // settings.php
 session_start();
 if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
+
+// Check if user is admin
+$is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+
+if (!$is_admin) {
+    // Redirect farmer users to dashboard with access denied message
+    header("Location: dashboard.php?access=denied");
+    exit();
+}
+
 include 'includes/db_connect.php';
 
 // Handle form submission to update settings

@@ -10,6 +10,13 @@ include 'includes/db_connect.php';
 include 'includes/crops.php';
 include 'includes/dss_logic.php';
 
+// Check if user is admin
+$is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+$username = isset($_SESSION['username']) ? $_SESSION['username'] : 'User';
+
+// Show access denied message if any
+$access_denied = isset($_GET['access']) && $_GET['access'] === 'denied';
+
 $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
@@ -89,9 +96,26 @@ if ($sensor_data['temperature'] !== "--") {
 
     <div class="main-content">
         <div class="header">
-            <h1>Field Conditions</h1>
+            <div>
+                <h1>Field Conditions</h1>
+                <p style="font-size: 13px; color: #748c94; margin-top: 5px;">
+                    Welcome, <strong><?php echo htmlspecialchars($username); ?></strong>
+                    <?php if ($is_admin): ?>
+                        <span style="background: #2d6a4f; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 5px;">ADMIN</span>
+                    <?php else: ?>
+                        <span style="background: #40916c; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 5px;">FARMER</span>
+                    <?php endif; ?>
+                </p>
+            </div>
             <div class="status">System Online</div>
+
+        <?php if ($access_denied): ?>
+        <div class="card" style="border-left: 4px solid #cc5500; background: #fffaf0; margin-bottom: 20px;">
+            <p style="color: #cc5500; font-weight: 600; margin: 0;">
+                ⚠️ Access Denied: Only administrators can access Settings. Contact your admin to modify system thresholds.
+            </p>
         </div>
+        <?php endif; ?>
 
         <div class="card-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;">
             
@@ -105,14 +129,12 @@ if ($sensor_data['temperature'] !== "--") {
                     <div id="rain-subtext" style="font-size: 12px; font-weight: bold; background: #f1f7f5; color: #40916c; padding: 6px 12px; border-radius: 20px;">
                         <?php echo $sensor_data['forecast_trend'] ? $sensor_data['forecast_trend'] : "Stable Conditions"; ?>
                     </div>
-                </div>
 
                 <div style="display: flex; gap: 15px; font-size: 11px; margin-bottom: 20px; color: #8d99ae; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                     <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #0077b6; border-radius: 3px;"></span> Wet/Rainy</div>
                     <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #e67e22; border-radius: 3px;"></span> Hot Dry</div>
                     <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #2d6a4f; border-radius: 3px;"></span> Cool Dry</div>
                     <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #8d99ae; border-radius: 3px;"></span> Stable</div>
-                </div>
                 
                 <div style="width: 100%; height: 250px;">
                    <canvas id="weatherTrendChart" 
@@ -120,7 +142,6 @@ if ($sensor_data['temperature'] !== "--") {
                         data-season="<?php echo $sensor_data['active_season']; ?>">
                     </canvas>
                 </div>
-            </div>
 
             <div class="card" id="card-temp">
                 <h3>TEMPERATURE</h3>
@@ -164,10 +185,8 @@ if ($sensor_data['temperature'] !== "--") {
                         Gathering metrics...
                     <?php endif; ?>
                 </div>
-            </div>
 
         </div> 
-    </div> 
     <script src="static/js/app.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
