@@ -1,7 +1,6 @@
 <?php
 // dashboard.php
 session_start();
-// FIX 1: Set the timezone to match your save_data.php
 date_default_timezone_set('Asia/Manila'); 
 
 if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
@@ -10,68 +9,64 @@ include 'includes/db_connect.php';
 include 'includes/crops.php';
 include 'includes/dss_logic.php';
 
-$settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
-$latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
-$weather = fetch_micro_season_forecast();
+try {
+    $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
+    $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
+    $weather = fetch_micro_season_forecast();
 
-// Heartbeat: track device "alive" status separately from data logging.
-// Uses device_heartbeat.last_seen which updates every ESP32 POST.
-$hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
-$current_time = time();
-$last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
-$timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
-$is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
+    $hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
+    $current_time = time();
+    $last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
+    $timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
+    $is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
 
-$sensor_data = [
-    'temperature' => ($is_live) ? ($latest['temp'] ?? "--") : "--",
-    'humidity' => ($is_live) ? ($latest['hum'] ?? "--") : "--",
-    'rain_array' => $weather['rain_array'],
-    'forecast_trend' => $weather['forecast_trend'],
-    'active_season' => 'Stable',
-    'is_live' => $is_live
-];
-// -----------------------------
+    $sensor_data = [
+        'temperature' => ($is_live) ? ($latest['temp'] ?? "--") : "--",
+        'humidity' => ($is_live) ? ($latest['hum'] ?? "--") : "--",
+        'rain_array' => $weather['rain_array'],
+        'forecast_trend' => $weather['forecast_trend'],
+        'active_season' => 'Stable',
+        'is_live' => $is_live
+    ];
 
-// --- FAKE DATA FOR TESTING ---
-/*
-$sensor_data = [
-    'temperature' => 31.5,  // Try changing this (e.g., 18.0 for cool)
-    'humidity' => 82.0,     // Try changing this (e.g., 60.0 for cool)
-    'rain_array' => $weather['rain_array'],
-    'forecast_trend' => $weather['forecast_trend'],
-    'active_season' => 'Stable',
-    'is_live' => true       // Forces the dashboard to show "Live reading active"
-];
-// -----------------------------
-*/
-$top_crop = null;
-// Only run the recommendation algorithm if we actually have live hardware data
-if ($sensor_data['temperature'] !== "--") {
-    $current_temp = (float)$sensor_data['temperature'];
-    $current_hum = (float)$sensor_data['humidity'];
-    $sensor_data['active_season'] = get_current_season($current_temp, $current_hum, $weather['two_week_total'], $settings['rain_threshold']);
-    
-    $ranked = [];
-    foreach ($CROP_DATABASE as $crop) {
-        if (in_array($sensor_data['active_season'], $crop['seasons'])) {
-            $score = 100 - (abs($current_temp - (array_sum($crop['ideal_temp'])/2)) * 5);
-            $ranked[] = [
-                "name" => $crop['name'],
-                "image_url" => $crop['image_url'],
-                "match" => max(0, (int)$score),
-                "req_temp" => $crop['ideal_temp'][0] . "-" . $crop['ideal_temp'][1] . "°C",
-                "req_hum" => $crop['ideal_hum'][0] . "-" . $crop['ideal_hum'][1] . "%"
-            ];
+    $top_crop = null;
+    if ($sensor_data['temperature'] !== "--") {
+        $current_temp = (float)$sensor_data['temperature'];
+        $current_hum = (float)$sensor_data['humidity'];
+        $sensor_data['active_season'] = get_current_season($current_temp, $current_hum, $weather['two_week_total'], $settings['rain_threshold']);
+        
+        $ranked = [];
+        foreach ($CROP_DATABASE as $crop) {
+            if (in_array($sensor_data['active_season'], $crop['seasons'])) {
+                $score = 100 - (abs($current_temp - (array_sum($crop['ideal_temp'])/2)) * 5);
+                $ranked[] = [
+                    "name" => $crop['name'],
+                    "image_url" => $crop['image_url'],
+                    "match" => max(0, (int)$score),
+                    "req_temp" => $crop['ideal_temp'][0] . "-" . $crop['ideal_temp'][1] . "°C",
+                    "req_hum" => $crop['ideal_hum'][0] . "-" . $crop['ideal_hum'][1] . "%"
+                ];
+            }
+        }
+        if (!empty($ranked)) {
+            usort($ranked, function($a, $b) { 
+                if ($a['match'] == $b['match']) return strcmp($a['name'], $b['name']);
+                return $b['match'] <=> $a['match']; 
+            });
+            $top_crop = $ranked[0];
         }
     }
-    if (!empty($ranked)) {
-        usort($ranked, function($a, $b) { 
-            // Add the alphabetical tie-breaker here too!
-            if ($a['match'] == $b['match']) return strcmp($a['name'], $b['name']);
-            return $b['match'] <=> $a['match']; 
-        });
-        $top_crop = $ranked[0];
-    }
+} catch (Exception $e) {
+    $error_msg = $e->getMessage();
+    $sensor_data = [
+        'temperature' => '--',
+        'humidity' => '--',
+        'rain_array' => array_fill(0, 14, 0),
+        'forecast_trend' => 'Error',
+        'active_season' => 'Stable',
+        'is_live' => false
+    ];
+    $top_crop = null;
 }
 ?>
 
@@ -88,6 +83,13 @@ if ($sensor_data['temperature'] !== "--") {
     <?php include 'includes/sidebar.php'; ?>
 
     <div class="main-content">
+        <?php if (isset($error_msg)): ?>
+        <div class="card" style="border-left-color: #d90429; background: #fff5f5;">
+            <h3 style="color: #d90429;">Database Error</h3>
+            <p><?php echo htmlspecialchars($error_msg); ?></p>
+        </div>
+        <?php endif; ?>
+
         <div class="header">
             <h1>Field Conditions</h1>
             <div class="status">System Online</div>
