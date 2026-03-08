@@ -36,7 +36,7 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 
         <form action="settings.php" method="POST">
             
-            <div class="card">
+            <div class="settings-group">
                 <h3><img src="https://unpkg.com/lucide-static@latest/icons/map-pin.svg" width="20" class="icon-green"> Geographic Parameters</h3>
                 <div class="form-row">
                     <div class="form-group">
@@ -56,7 +56,7 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
                 </p>
             </div>
 
-            <div class="card" style="border-top-color: #e67e22;">
+            <div class="settings-group" style="border-left-color: #e67e22;">
                 <h3><img src="https://unpkg.com/lucide-static@latest/icons/triangle-alert.svg" width="20" class="icon-green"> Alert Thresholds (DSS Rules)</h3>
                 <div class="form-row">
                     <div class="form-group">

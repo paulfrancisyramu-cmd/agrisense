@@ -120,7 +120,7 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
 .crop-match .unit { font-size: 16px; opacity: 0.8; }
 
 /* Settings Form Styles */
-.settings-group { background: white; padding: 30px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-left: 4px solid #40916c; }
+.settings-group { background: white; padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; border-top: 5px solid #40916c; }
 .settings-group h3 { color: #1b4332; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 18px; }
 .form-row { display: flex; gap: 20px; margin-bottom: 15px; }
 .form-group { flex: 1; }
@@ -235,8 +235,9 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     /* Content area */
     .content-area { margin-left: 0 !important; width: 100% !important; padding: 70px 15px 20px 15px !important; display: block !important; box-sizing: border-box !important; }
     
-    /* Cards */
-    .card {
+    /* Cards - same styling for card and settings-group on mobile */
+    .card,
+    .settings-group {
         padding: 20px !important;
         border-radius: 8px !important;
         border: 1px solid #e2e8f0 !important;
@@ -313,18 +314,35 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
     .log-table { min-width: 600px !important; font-size: 11px !important; }
     .log-table th, .log-table td { padding: 8px 10px !important; white-space: nowrap !important; }
     
-    /* Form rows */
-    .form-row { flex-direction: column !important; gap: 10px !important; }
-    .form-group { width: 100% !important; }
+    /* Form rows - stack vertically on mobile */
+    .form-row { 
+        flex-direction: column !important; 
+        gap: 15px !important; 
+        width: 100% !important;
+    }
+    .form-group { 
+        width: 100% !important; 
+    }
+    .form-group label {
+        font-size: 11px !important;
+        margin-bottom: 5px !important;
+    }
+    .form-group input {
+        padding: 10px !important;
+        font-size: 14px !important;
+    }
     
-    /* Settings group */
-    .settings-group { padding: 15px !important; margin-bottom: 15px !important; }
-    .settings-group h3 { font-size: 14px !important; margin-bottom: 15px !important; }
+    /* Settings group h3 */
+    .settings-group h3 { 
+        font-size: 16px !important; 
+        margin-bottom: 15px !important; 
+    }
 }
 
 /* Extra small screens */
 @media (max-width: 480px) {
-    .card { padding: 15px !important; margin-bottom: 10px !important; }
+    .card,
+    .settings-group { padding: 15px !important; margin-bottom: 10px !important; }
     .mobile-navbar { padding: 8px 12px !important; }
     .mobile-logo { font-size: 14px !important; }
     .header h1 { font-size: 18px !important; }
