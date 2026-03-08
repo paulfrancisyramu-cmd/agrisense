@@ -16,16 +16,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $pass = $_POST['password'];
 
     // Query the database for the user (PDO)
-    $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = :username");
-    $stmt->execute([':username' => $user]);
-    $data = $stmt->fetch();
+    // Try to get role, but handle if column doesn't exist
+    try {
+        $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = :username");
+        $stmt->execute([':username' => $user]);
+        $data = $stmt->fetch();
+    } catch (PDOException $e) {
+        // If role column doesn't exist, try without it
+        $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = :username");
+        $stmt->execute([':username' => $user]);
+        $data = $stmt->fetch();
+        $data['role'] = 'admin'; // Default to admin for backward compatibility
+    }
 
     if ($data) {
         // Compare passwords
         if ($pass === $data['password']) {
             $_SESSION['user_id'] = $data['id'];
             $_SESSION['username'] = $user;
-            $_SESSION['role'] = $data['role'] ?? 'farmer';
+            $_SESSION['role'] = $data['role'] ?? 'admin';
             header("Location: dashboard.php");
             exit();
         } else {

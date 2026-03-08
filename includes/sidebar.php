@@ -1,7 +1,7 @@
 <?php 
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// Check if user is admin
+// Check if user is admin - handle case where role doesn't exist yet
 $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 ?>
 

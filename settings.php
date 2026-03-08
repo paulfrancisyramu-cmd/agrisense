@@ -3,7 +3,7 @@
 session_start();
 if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
 
-// Check if user is admin
+// Check if user is admin - handle case where role column may not exist yet
 $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 
 if (!$is_admin) {
