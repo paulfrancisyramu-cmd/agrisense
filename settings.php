@@ -2,11 +2,10 @@
 // settings.php
 session_start();
 if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
-if ($_SESSION['role'] !== 'admin') { header("Location: dashboard.php"); exit(); }
 include 'includes/db_connect.php';
 
-// Handle form submission to update settings
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+// Handle form submission to update settings (only for admin)
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_SESSION['role'] === 'admin') {
     $heat = (float)$_POST['heat_threshold'];
     $hum = (float)$_POST['humidity_threshold'];
     $rain = (float)$_POST['rain_threshold'];
@@ -18,6 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 // Fetch current settings to populate the form
 $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
+$is_admin = $_SESSION['role'] === 'admin';
 ?>
 
 <!DOCTYPE html>
@@ -89,27 +89,31 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
                 <div class="form-row">
                     <div class="form-group">
                         <label>Extreme Heat Trigger (°C)</label>
-                        <input type="number" step="0.1" name="heat_threshold" value="<?php echo htmlspecialchars($settings['heat_threshold']); ?>" required>
+                        <input type="number" step="0.1" name="heat_threshold" value="<?php echo htmlspecialchars($settings['heat_threshold']); ?>" <?php if (!$is_admin) echo 'readonly'; ?> required>
                     </div>
                     <div class="form-group">
                         <label>High Transpiration Trigger (%)</label>
-                        <input type="number" step="0.1" name="humidity_threshold" value="<?php echo htmlspecialchars($settings['hum_threshold']); ?>" required>
+                        <input type="number" step="0.1" name="humidity_threshold" value="<?php echo htmlspecialchars($settings['hum_threshold']); ?>" <?php if (!$is_admin) echo 'readonly'; ?> required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Rainy Season Threshold (14-Day mm)</label>
-                        <input type="number" step="0.1" name="rain_threshold" value="<?php echo htmlspecialchars($settings['rain_threshold']); ?>" required>
+                        <input type="number" step="0.1" name="rain_threshold" value="<?php echo htmlspecialchars($settings['rain_threshold']); ?>" <?php if (!$is_admin) echo 'readonly'; ?> required>
                     </div>
                     <div class="form-group">
                         <label>Heartbeat Timeout (Seconds)</label>
-                        <input type="number" name="heartbeat_timeout" value="<?php echo htmlspecialchars($settings['heartbeat_timeout']); ?>" required>
+                        <input type="number" name="heartbeat_timeout" value="<?php echo htmlspecialchars($settings['heartbeat_timeout']); ?>" <?php if (!$is_admin) echo 'readonly'; ?> required>
                     </div>
                 </div>
                 <p style="font-size: 12px; color: #95a5a6; margin-top: 5px;">* Adjusting these triggers will instantly alter how the system generates crop recommendations and system alerts.</p>
             </div>
             
+            <?php if ($is_admin): ?>
             <button type="submit" class="btn-save" onclick="alert('Configuration saved securely. DSS rules updated.')">Save Changes</button>
+            <?php else: ?>
+            <p style="font-size: 14px; color: #cc5500; text-align: center; margin-top: 20px;">You do not have permission to modify settings. Contact an administrator.</p>
+            <?php endif; ?>
         </form>
 
     </div>
