@@ -54,11 +54,18 @@ if ($sensor_data['temperature'] !== "--") {
     $ranked = [];
     foreach ($CROP_DATABASE as $crop) {
         if (in_array($sensor_data['active_season'], $crop['seasons'])) {
-            $score = 100 - (abs($current_temp - (array_sum($crop['ideal_temp'])/2)) * 5);
+            $temp_mid = (array_sum($crop['ideal_temp']) / 2);
+            $hum_mid = (array_sum($crop['ideal_hum']) / 2);
+            
+            $temp_score = 100 - (abs($current_temp - $temp_mid) * 5);
+            $hum_score = 100 - (abs($current_hum - $hum_mid) * 5);
+            
+            $combined_score = ($temp_score + $hum_score) / 2;
+            
             $ranked[] = [
                 "name" => $crop['name'],
                 "image_url" => $crop['image_url'],
-                "match" => max(0, (int)$score),
+                "match" => max(0, (int)$combined_score),
                 "req_temp" => $crop['ideal_temp'][0] . "-" . $crop['ideal_temp'][1] . "°C",
                 "req_hum" => $crop['ideal_hum'][0] . "-" . $crop['ideal_hum'][1] . "%"
             ];
