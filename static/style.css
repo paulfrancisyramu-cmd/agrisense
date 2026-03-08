@@ -247,6 +247,7 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
         padding: 80px 20px 20px 20px !important;
         display: flex !important;
         flex-direction: column !important;
+        justify-content: flex-start !important;
     }
     
     .sidebar.active { transform: translateX(0) !important; }
@@ -257,6 +258,11 @@ html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
         padding: 14px 15px !important; 
         font-size: 15px !important;
         background: rgba(255,255,255,0.05);
+    }
+    
+    /* Sidebar bottom - remove auto margin on mobile so logout is closer to settings */
+    .sidebar-bottom { 
+        margin-top: 20px !important; 
     }
     
     /* Logout button - very visible on mobile */
