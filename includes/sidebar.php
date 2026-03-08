@@ -1,12 +1,12 @@
 <?php $current_page = basename($_SERVER['PHP_SELF']); ?>
+<button class="hamburger" id="hamburger" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h2><img src="https://unpkg.com/lucide-static@latest/icons/leaf.svg" width="24" class="icon-white"> AgriSense</h2>
-        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
     </div>
     
     <p class="sidebar-label">Main Menu</p>
