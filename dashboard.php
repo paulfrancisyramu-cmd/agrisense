@@ -10,13 +10,6 @@ include 'includes/db_connect.php';
 include 'includes/crops.php';
 include 'includes/dss_logic.php';
 
-// Check if user is admin - handle case where role column may not exist yet
-$is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
-$username = isset($_SESSION['username']) ? $_SESSION['username'] : 'User';
-
-// Show access denied message if any
-$access_denied = isset($_GET['access']) && $_GET['access'] === 'denied';
-
 $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
@@ -37,7 +30,20 @@ $sensor_data = [
     'active_season' => 'Stable',
     'is_live' => $is_live
 ];
+// -----------------------------
 
+// --- FAKE DATA FOR TESTING ---
+/*
+$sensor_data = [
+    'temperature' => 31.5,  // Try changing this (e.g., 18.0 for cool)
+    'humidity' => 82.0,     // Try changing this (e.g., 60.0 for cool)
+    'rain_array' => $weather['rain_array'],
+    'forecast_trend' => $weather['forecast_trend'],
+    'active_season' => 'Stable',
+    'is_live' => true       // Forces the dashboard to show "Live reading active"
+];
+// -----------------------------
+*/
 $top_crop = null;
 // Only run the recommendation algorithm if we actually have live hardware data
 if ($sensor_data['temperature'] !== "--") {
@@ -60,6 +66,7 @@ if ($sensor_data['temperature'] !== "--") {
     }
     if (!empty($ranked)) {
         usort($ranked, function($a, $b) { 
+            // Add the alphabetical tie-breaker here too!
             if ($a['match'] == $b['match']) return strcmp($a['name'], $b['name']);
             return $b['match'] <=> $a['match']; 
         });
@@ -82,26 +89,8 @@ if ($sensor_data['temperature'] !== "--") {
 
     <div class="main-content">
         <div class="header">
-            <div>
-                <h1>Field Conditions</h1>
-                <p style="font-size: 13px; color: #748c94; margin-top: 5px;">
-                    Welcome, <strong><?php echo htmlspecialchars($username); ?></strong>
-                    <?php if ($is_admin): ?>
-                        <span style="background: #2d6a4f; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 5px;">ADMIN</span>
-                    <?php else: ?>
-                        <span style="background: #40916c; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 5px;">FARMER</span>
-                    <?php endif; ?>
-                </p>
-            </div>
+            <h1>Field Conditions</h1>
             <div class="status">System Online</div>
-
-        <?php if ($access_denied): ?>
-        <div class="card" style="border-left: 4px solid #cc5500; background: #fffaf0; margin-bottom: 20px;">
-            <p style="color: #cc5500; font-weight: 600; margin: 0;">
-                ⚠️ Access Denied: Only administrators can access Settings. Contact your admin to modify system thresholds.
-            </p>
-        </div>
-        <?php endif; ?>
 
         <div class="card-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;">
             

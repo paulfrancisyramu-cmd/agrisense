@@ -1,9 +1,4 @@
-<?php 
-$current_page = basename($_SERVER['PHP_SELF']);
-
-// Check if user is admin - handle case where role doesn't exist yet
-$is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
-?>
+<?php $current_page = basename($_SERVER['PHP_SELF']); ?>
 
 <div class="mobile-navbar">
     <button id="menu-toggle" class="menu-btn">
@@ -36,11 +31,9 @@ $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
     <a href="alerts.php" class="<?php echo ($current_page == 'alerts.php') ? 'active' : ''; ?>">
         <img src="https://unpkg.com/lucide-static@latest/icons/bell.svg" width="18" class="icon-white"> Alerts
     </a>
-    <?php if ($is_admin): ?>
     <a href="settings.php" class="<?php echo ($current_page == 'settings.php') ? 'active' : ''; ?>">
         <img src="https://unpkg.com/lucide-static@latest/icons/settings.svg" width="18" class="icon-white"> Settings
     </a>
-    <?php endif; ?>
     
     <div class="sidebar-bottom">
         <a href="logout.php" class="logout-btn">

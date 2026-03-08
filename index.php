@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = $_POST['username'];
     $pass = $_POST['password'];
 
-    // Query the database for the user
+    // Query the database for the user (PDO)
     $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = :username");
     $stmt->execute([':username' => $user]);
     $data = $stmt->fetch();
@@ -25,9 +25,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($pass === $data['password']) {
             $_SESSION['user_id'] = $data['id'];
             $_SESSION['username'] = $user;
-            // Default to admin role until the database is updated
-            $_SESSION['role'] = 'admin';
-            
             header("Location: dashboard.php");
             exit();
         } else {

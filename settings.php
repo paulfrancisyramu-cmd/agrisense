@@ -2,16 +2,6 @@
 // settings.php
 session_start();
 if (!isset($_SESSION['user_id'])) { header("Location: index.php"); exit(); }
-
-// Check if user is admin - handle case where role column may not exist yet
-$is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
-
-if (!$is_admin) {
-    // Redirect farmer users to dashboard with access denied message
-    header("Location: dashboard.php?access=denied");
-    exit();
-}
-
 include 'includes/db_connect.php';
 
 // Handle form submission to update settings
@@ -33,21 +23,33 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriSense - Settings</title>
-    <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="static/style.css?v=13">
     <style>
-        /* Keep desktop styling exactly as before */
-        body { background-color: #f0f4f2; }
-        .settings-container { 
+        /* ADDED: Background contrast and sharper card definition to prevent blending */
+        body { background-color: #f0f4f2 !important; }
+
+        .settings-group { 
             background: white; 
             padding: 30px; 
             border-radius: 12px; 
             margin-bottom: 25px; 
+            /* Enhanced shadow and border for depth */
             box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
             border: 1px solid #d1dbd4;
+            border-left: 5px solid #40916c; 
         }
-        .settings-container h3 { color: #1b4332; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 18px; }
+
+        /* Restored original styles */
+        .settings-group h3 { color: #1b4332; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 18px; }
+        .form-row { display: flex; gap: 20px; margin-bottom: 15px; }
+        .form-group { flex: 1; }
+        .form-group label { display: block; font-size: 12px; color: #748c94; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #fff; color: #2c3e50; transition: border-color 0.3s; }
+        .form-group input:focus { border-color: #40916c; outline: none; }
+        .form-group input:disabled { background: #f1f5f9; cursor: not-allowed; opacity: 0.7; border-color: #e2e8f0; }
+        .btn-save { background: #2d6a4f; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; font-size: 14px; }
+        .btn-save:hover { background: #1b4332; transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -60,7 +62,7 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 
         <form action="settings.php" method="POST">
             
-            <div class="settings-container">
+            <div class="settings-group">
                 <h3><img src="https://unpkg.com/lucide-static@latest/icons/map-pin.svg" width="20" class="icon-green"> Geographic Parameters</h3>
                 <div class="form-row">
                     <div class="form-group">
@@ -80,7 +82,7 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
                 </p>
             </div>
 
-            <div class="settings-container" style="border-left: 5px solid #e67e22;">
+            <div class="settings-group" style="border-left-color: #e67e22;">
                 <h3><img src="https://unpkg.com/lucide-static@latest/icons/triangle-alert.svg" width="20" style="filter: brightness(0) saturate(100%) invert(48%) sepia(87%) saturate(1637%) hue-rotate(352deg) brightness(97%) contrast(88%);"> Alert Thresholds (DSS Rules)</h3>
                 <div class="form-row">
                     <div class="form-group">
@@ -107,6 +109,6 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
         </form>
 
     </div>
-    <script src="static/js/app.js?v=<?php echo time(); ?>"></script>
+    <script src="static/js/app.js?v=13"></script>
 </body>
 </html>
