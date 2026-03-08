@@ -1,16 +1,5 @@
 <?php $current_page = basename($_SERVER['PHP_SELF']); ?>
-
-<div class="mobile-navbar">
-    <button id="menu-toggle" class="menu-btn">
-        <img src="https://unpkg.com/lucide-static@latest/icons/menu.svg" width="24" class="icon-white">
-    </button>
-    <div class="mobile-logo">
-        <img src="https://unpkg.com/lucide-static@latest/icons/leaf.svg" width="20" class="icon-white"> AgriSense
-    </div>
-
-<div id="sidebar-overlay" class="sidebar-overlay"></div>
-
-<div class="sidebar" id="main-sidebar">
+<div class="sidebar">
     <h2><img src="https://unpkg.com/lucide-static@latest/icons/leaf.svg" width="24" class="icon-white"> AgriSense</h2>
     
     <p class="sidebar-label">Main Menu</p>
@@ -40,32 +29,4 @@
             <img src="https://unpkg.com/lucide-static@latest/icons/log-out.svg" width="18" class="icon-white"> Log Out
         </a>
     </div>
-
-<script>
-// Wait for DOM to load
-document.addEventListener('DOMContentLoaded', function() {
-    const menuToggle = document.getElementById('menu-toggle');
-    const mainSidebar = document.getElementById('main-sidebar');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
-
-    if (menuToggle && mainSidebar && sidebarOverlay) {
-        menuToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            mainSidebar.classList.toggle('active');
-            sidebarOverlay.classList.toggle('show');
-        });
-
-        sidebarOverlay.addEventListener('click', function() {
-            mainSidebar.classList.remove('active');
-            sidebarOverlay.classList.remove('show');
-        });
-
-        mainSidebar.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', function() {
-                mainSidebar.classList.remove('active');
-                sidebarOverlay.classList.remove('show');
-            });
-        });
-    }
-});
-</script>
+</div>

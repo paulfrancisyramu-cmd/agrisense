@@ -77,6 +77,7 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
                         <label>Longitude</label>
                         <input type="text" value="121.41" disabled>
                     </div>
+                </div>
                 <p style="font-size: 13px; color: #cc5500; margin-top: 10px; font-weight: 500; background: #fffaf0; padding: 10px; border-radius: 6px; border-left: 3px solid #cc5500;">
                     These parameters are strictly visual to define the specific boundaries of this study. The weather API is hardcoded strictly to Nagcarlan.
                 </p>
@@ -93,6 +94,7 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
                         <label>High Transpiration Trigger (%)</label>
                         <input type="number" step="0.1" name="humidity_threshold" value="<?php echo htmlspecialchars($settings['hum_threshold']); ?>" required>
                     </div>
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Rainy Season Threshold (14-Day mm)</label>
@@ -102,6 +104,7 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
                         <label>Heartbeat Timeout (Seconds)</label>
                         <input type="number" name="heartbeat_timeout" value="<?php echo htmlspecialchars($settings['heartbeat_timeout']); ?>" required>
                     </div>
+                </div>
                 <p style="font-size: 12px; color: #95a5a6; margin-top: 5px;">* Adjusting these triggers will instantly alter how the system generates crop recommendations and system alerts.</p>
             </div>
             

@@ -1,8 +1,4 @@
 <?php
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 // login.php
 session_start();
 include 'includes/db_connect.php';
@@ -28,7 +24,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Compare passwords
         if ($pass === $data['password']) {
             $_SESSION['user_id'] = $data['id'];
-            $_SESSION['username'] = $user;
             header("Location: dashboard.php");
             exit();
         } else {

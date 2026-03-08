@@ -1,20 +1,9 @@
 <?php
 // PostgreSQL connection for Render (and other hosts)
+// 1) Prefer a single DATABASE_URL (Render's default)
+// 2) Otherwise fall back to individual PG* env vars
 
-// Load .env file if it exists
-if (file_exists(__DIR__ . '/../agrisense.env')) {
-    $lines = file(__DIR__ . '/../agrisense.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos($line, '#') === 0) continue; // Skip comments
-        if (strpos($line, '=') === false) continue;
-        list($key, $value) = explode('=', $line, 2);
-        $_ENV[trim($key)] = trim($value);
-        putenv(trim($key) . "=" . trim($value));
-    }
-}
-
-// 1) Prefer a single DATABASE_URL 
-$databaseUrl = getenv('DATABASE_URL') ?: ($_ENV['DATABASE_URL'] ?? '');
+$databaseUrl = getenv('DATABASE_URL');
 
 if ($databaseUrl) {
     $parts = parse_url($databaseUrl);
@@ -24,12 +13,11 @@ if ($databaseUrl) {
     $pass = $parts['pass'] ?? '';
     $db   = ltrim($parts['path'] ?? '/agrisense', '/');
 } else {
-    // Fall back to individual env vars
-    $host = getenv('PGHOST') ?: ($_ENV['PGHOST'] ?? 'localhost');
-    $port = getenv('PGPORT') ?: ($_ENV['PGPORT'] ?? 5432);
-    $user = getenv('PGUSER') ?: ($_ENV['PGUSER'] ?? 'postgres');
-    $pass = getenv('PGPASSWORD') ?: ($_ENV['PGPASSWORD'] ?? '');
-    $db   = getenv('PGDATABASE') ?: ($_ENV['PGDATABASE'] ?? 'agrisense');
+    $host = getenv('PGHOST') ?: 'localhost';
+    $port = getenv('PGPORT') ?: 5432;
+    $user = getenv('PGUSER') ?: 'postgres';
+    $pass = getenv('PGPASSWORD') ?: '';
+    $db   = getenv('PGDATABASE') ?: 'agrisense';
 }
 
 $dsn = "pgsql:host={$host};port={$port};dbname={$db};";
