@@ -135,20 +135,34 @@
         border-radius: 5px !important;
     }
 
-    /* Sidebar hidden by default on mobile */
+    /* Sidebar as slide-out drawer */
     .sidebar {
         transform: translateX(-100%) !important;
-        width: 100% !important;
+        width: 280px !important;
         height: 100vh !important;
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
         z-index: 1001 !important;
         padding: 20px !important;
+        transition: transform 0.3s ease !important;
     }
 
     .sidebar.open {
         transform: translateX(0) !important;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* Overlay when sidebar is open */
+    .sidebar.open::before {
+        content: '' !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: rgba(0, 0, 0, 0.5) !important;
+        z-index: 999 !important;
     }
 
     /* Hide labels */
