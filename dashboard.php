@@ -10,7 +10,7 @@ include 'includes/db_connect.php';
 include 'includes/crops.php';
 include 'includes/dss_logic.php';
 
-// Check if user is admin
+// Check if user is admin - handle case where role column may not exist yet
 $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'User';
 
@@ -37,20 +37,7 @@ $sensor_data = [
     'active_season' => 'Stable',
     'is_live' => $is_live
 ];
-// -----------------------------
 
-// --- FAKE DATA FOR TESTING ---
-/*
-$sensor_data = [
-    'temperature' => 31.5,  // Try changing this (e.g., 18.0 for cool)
-    'humidity' => 82.0,     // Try changing this (e.g., 60.0 for cool)
-    'rain_array' => $weather['rain_array'],
-    'forecast_trend' => $weather['forecast_trend'],
-    'active_season' => 'Stable',
-    'is_live' => true       // Forces the dashboard to show "Live reading active"
-];
-// -----------------------------
-*/
 $top_crop = null;
 // Only run the recommendation algorithm if we actually have live hardware data
 if ($sensor_data['temperature'] !== "--") {
@@ -73,7 +60,6 @@ if ($sensor_data['temperature'] !== "--") {
     }
     if (!empty($ranked)) {
         usort($ranked, function($a, $b) { 
-            // Add the alphabetical tie-breaker here too!
             if ($a['match'] == $b['match']) return strcmp($a['name'], $b['name']);
             return $b['match'] <=> $a['match']; 
         });
