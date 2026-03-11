@@ -48,7 +48,8 @@ if (!$no_data) {
     
     $ranked = [];
     foreach ($all_crops as $crop) {
-        if (in_array($active_season, $crop['seasons'])) {
+        $season_ok = in_array($active_season, $crop['seasons']);
+        if ($season_ok || !empty($crop['is_admin_created'])) {
             $temp_mid = (array_sum($crop['ideal_temp']) / 2);
             $hum_mid = (array_sum($crop['ideal_hum']) / 2);
             
@@ -56,12 +57,15 @@ if (!$no_data) {
             $hum_score = 100 - (abs($current_hum - $hum_mid) * 5);
             
             $combined_score = ($temp_score + $hum_score) / 2;
+            if (!$season_ok) {
+                $combined_score -= 25;
+            }
             
             $ranked[] = [
                 "name" => $crop['name'],
                 "image_url" => $crop['image_url'],
                 "match" => max(0, (int)$combined_score),
-                "subtext" => "Detected: " . $active_season,
+                "subtext" => "Detected: " . $active_season . (!$season_ok ? " (out of season)" : ""),
                 "req_temp" => $crop['ideal_temp'][0] . "-" . $crop['ideal_temp'][1] . "°C",
                 "req_hum" => $crop['ideal_hum'][0] . "-" . $crop['ideal_hum'][1] . "%",
                 "seasons_text" => implode(", ", $crop['seasons'])
