@@ -5,7 +5,7 @@ use PHPMailer\PHPMailer\Exception;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-function sendPasswordResetEmail(, , ) {
+function sendPasswordResetEmail($email, $username, $reset_token) {
     $mail = new PHPMailer(true);
     try {
         $mail->SMTPDebug = SMTP::DEBUG_SERVER;
@@ -31,4 +31,4 @@ function sendPasswordResetEmail(, , ) {
         return false;
     }
 }
-?></parameter>
+?>
