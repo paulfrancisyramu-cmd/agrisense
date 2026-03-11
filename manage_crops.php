@@ -197,8 +197,14 @@ $db_crops = $conn->query("SELECT * FROM crops ORDER BY name")->fetchAll();
     <?php include 'includes/sidebar.php'; ?>
 
     <div class="main-content">
-        <div class="header">
-            <h1>Manage Crops</h1>
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="https://unpkg.com/lucide-static@latest/icons/leaf.svg" width="32" style="filter: invert(36%) sepia(62%) saturate(464%) hue-rotate(105deg) brightness(94%) contrast(84%);">
+                <div>
+                    <h1 style="margin: 0; font-size: 24px;">Manage Crops</h1>
+                    <p style="margin: 0; font-size: 12px; color: #64748b;">Admin Crop Management</p>
+                </div>
+            </div>
             <div class="status" style="background: #dcfce7; color: #166534;">Admin Panel</div>
         </div>
 

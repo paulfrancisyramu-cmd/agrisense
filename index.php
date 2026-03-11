@@ -11,18 +11,24 @@ if (isset($_SESSION['user_id'])) {
 
 $error_login = false;
 $error_signup = '';
+$success_message = '';
 
+// Handle POST requests
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    
+    // ------------------- SIGNUP -------------------
     if (isset($_POST['signup'])) {
-        // Signup logic
-        $user = $_POST['username'];
+        $user = trim($_POST['username']);
+        $email = trim($_POST['email']);
         $pass = $_POST['password'];
         $confirm = $_POST['confirm_password'];
 
         if ($pass !== $confirm) {
             $error_signup = "Passwords do not match.";
-        } elseif (empty($user) || empty($pass)) {
-            $error_signup = "Username and password are required.";
+        } elseif (empty($user) || empty($pass) || empty($email)) {
+            $error_signup = "Username, email, and password are required.";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error_signup = "Please enter a valid email address.";
         } else {
             // Check if username exists
             $stmt = $conn->prepare("SELECT id FROM users WHERE username = :username");
@@ -30,18 +36,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->fetch()) {
                 $error_signup = "Username already exists.";
             } else {
-                // Insert new user with role farmer
-                $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (:username, :password, 'farmer')");
-                $stmt->execute([':username' => $user, ':password' => $pass]);
-                // Auto-login after signup
-                $_SESSION['user_id'] = $conn->lastInsertId();
-                $_SESSION['role'] = 'farmer';
-                header("Location: dashboard.php");
-                exit();
+                // Check if email exists
+                $stmt = $conn->prepare("SELECT id FROM users WHERE email = :email");
+                $stmt->execute([':email' => $email]);
+                if ($stmt->fetch()) {
+                    $error_signup = "Email already registered.";
+                } else {
+                    // Insert new user with role farmer
+                    $stmt = $conn->prepare("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, 'farmer')");
+                    $stmt->execute([':username' => $user, ':email' => $email, ':password' => $pass]);
+                    
+                    $success_message = "Account created! You can now login.";
+                    // Clear form for next time
+                    $_POST = array();
+                }
             }
         }
-    } else {
-        // Login logic
+    } 
+    
+    // ------------------- LOGIN -------------------
+    elseif (isset($_POST['login'])) {
         $user = $_POST['username'];
         $pass = $_POST['password'];
 
@@ -64,6 +78,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error_login = true;
         }
     }
+    
+    // ------------------- FORGOT PASSWORD -------------------
+    elseif (isset($_POST['forgot_password'])) {
+        $email = trim($_POST['recovery_email']);
+        
+        if (empty($email)) {
+            $error_forgot = "Please enter your email address.";
+        } else {
+            // Check if email exists
+            $stmt = $conn->prepare("SELECT id, username FROM users WHERE email = :email");
+            $stmt->execute([':email' => $email]);
+            $user = $stmt->fetch();
+            
+            if ($user) {
+                // Generate reset token (valid for 1 hour)
+                $token = bin2hex(random_bytes(32));
+                $expire = date('Y-m-d H:i:s', strtotime('+1 hour'));
+                
+                // Save token to database
+                $stmt = $conn->prepare("UPDATE users SET reset_token = :token, reset_token_expire = :expire WHERE id = :id");
+                $stmt->execute([':token' => $token, ':expire' => $expire, ':id' => $user['id']]);
+                
+                // In production, send email with reset link
+                // For now, show the token directly (for testing)
+                $success_message = "Password reset link generated for <strong>" . htmlspecialchars($user['username']) . "</strong>:<br>
+                    <code style='background: #f0f0f0; padding: 10px; word-break: break-all;'>reset_password.php?token=" . $token . "</code><br>
+                    <small>Note: In production, this would be sent to your email.</small>";
+                $show_reset_info = true;
+            } else {
+                $error_forgot = "No account found with that email address.";
+            }
+        }
+    }
 }
 ?>
 
@@ -78,10 +125,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         function showTab(tab) {
             document.getElementById('login-tab').style.display = tab === 'login' ? 'block' : 'none';
             document.getElementById('signup-tab').style.display = tab === 'signup' ? 'block' : 'none';
+            document.getElementById('forgot-tab').style.display = tab === 'forgot' ? 'block' : 'none';
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
         }
+        
+        function showForgotPassword() {
+            document.getElementById('login-tab').style.display = 'none';
+            document.getElementById('forgot-tab').style.display = 'block';
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        }
     </script>
+    <style>
+        .forgot-link {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #40916c;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body class="login-body">
     <div class="login-container">
@@ -96,8 +164,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <button type="button" class="tab-button" onclick="showTab('signup')">Sign Up</button>
         </div>
 
+        <!-- Success Message -->
+        <?php if (!empty($success_message)): ?>
+            <div style="background: #dcfce7; color: #166534; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 14px; text-align: center;">
+                <?php echo $success_message; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- LOGIN TAB -->
         <div id="login-tab">
             <form method="POST" action="index.php">
+                <input type="hidden" name="login" value="1">
                 <input type="text" name="username" placeholder="Username" required>
                 <input type="password" name="password" placeholder="Password" required>
 
@@ -107,12 +184,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <button type="submit" class="btn">Access Dashboard</button>
             </form>
+            <a class="forgot-link" onclick="showForgotPassword()">Forgot Password?</a>
         </div>
 
+        <!-- SIGNUP TAB -->
         <div id="signup-tab" style="display:none;">
             <form method="POST" action="index.php">
                 <input type="hidden" name="signup" value="1">
-                <input type="text" name="username" placeholder="Username" required>
+                <input type="text" name="username" placeholder="Username" required value="<?php echo $_POST['username'] ?? ''; ?>">
+                <input type="email" name="email" placeholder="Email Address" required value="<?php echo $_POST['email'] ?? ''; ?>">
                 <input type="password" name="password" placeholder="Password" required>
                 <input type="password" name="confirm_password" placeholder="Confirm Password" required>
 
@@ -123,6 +203,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <button type="submit" class="btn">Create Account</button>
             </form>
         </div>
-    </div>
+
+        <!-- FORGOT PASSWORD TAB -->
+        <div id="forgot-tab" style="display:none;">
+            <p style="text-align: center; color: #64748b; margin-bottom: 15px; font-size: 14px;">
+                Enter your registered email address to receive a password reset link.
+            </p>
+            <form method="POST" action="index.php">
+                <input type="hidden" name="forgot_password" value="1">
+                <input type="email" name="recovery_email" placeholder="Your Email Address" required>
+                
+                <?php if (!empty($error_forgot)): ?>
+                    <p style="color: #d90429; margin-top: 10px; font-size: 14px;"><?php echo $error_forgot; ?></p>
+                <?php endif; ?>
+
+                <button type="submit" class="btn">Send Reset Link</button>
+            </form>
+            <a class="forgot-link" onclick="showTab('login'); document.querySelectorAll('.tab-button')[0].click();">Back to Login</a>
+        </div>
 </body>
 </html>
+</parameter>
+</create_file>
