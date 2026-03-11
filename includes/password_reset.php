@@ -39,39 +39,15 @@ function generateResetToken() {
 function createPasswordResetToken($user_id) {
     global $conn;
     
-    // Create email column in users table if it doesn't exist
-    try {
-        $conn->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255)");
-    } catch (Exception $e) {
-        // Column might already exist, ignore error
-    }
-    
-    // Create table if it doesn't exist
-    try {
-        $conn->exec("CREATE TABLE IF NOT EXISTS password_reset_tokens (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            token VARCHAR(255) NOT NULL UNIQUE,
-            expires_at TIMESTAMP NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )");
-    } catch (Exception $e) {
-        // Table might already exist, ignore error
-    }
-    
-    // Delete any existing tokens for this user
-    $stmt = $conn->prepare("DELETE FROM password_reset_tokens WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    
     // Generate new token
     $token = generateResetToken();
     $expires = date('Y-m-d H:i:s', time() + 3600); // 1 hour from now
     
-    // Insert new token
-    $stmt = $conn->prepare("INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)");
+    // Update user with reset token
+    $stmt = $conn->prepare("UPDATE users SET reset_token = ?, reset_token_expire = ? WHERE id = ?");
     
     try {
-        $stmt->execute([$user_id, $token, $expires]);
+        $stmt->execute([$token, $expires, $user_id]);
         return $token;
     } catch (Exception $e) {
         return false;
@@ -109,11 +85,11 @@ function getUserByEmail($email) {
 function validateResetToken($token) {
     global $conn;
     
-    // Get token from database
+    // Get token from users table
     $stmt = $conn->prepare("
-        SELECT user_id, expires_at 
-        FROM password_reset_tokens 
-        WHERE token = ?
+        SELECT id, reset_token_expire 
+        FROM users 
+        WHERE reset_token = ?
     ");
     $stmt->execute([$token]);
     $result = $stmt->fetch();
@@ -124,11 +100,8 @@ function validateResetToken($token) {
     }
     
     // Use PHP time() for comparison (more reliable than database NOW())
-    $expires_timestamp = strtotime($result['expires_at']);
+    $expires_timestamp = strtotime($result['reset_token_expire']);
     $now_timestamp = time();
-    
-    // Debug: uncomment to see what's happening
-    // error_log("Token check - expires: " . $result['expires_at'] . " (" . $expires_timestamp . "), now: " . $now_timestamp);
     
     // Check if token has expired
     if ($now_timestamp > $expires_timestamp) {
@@ -136,7 +109,7 @@ function validateResetToken($token) {
         return false;
     }
     
-    return $result['user_id'];
+    return $result['id'];
 }
 
 /**
@@ -148,15 +121,10 @@ function validateResetToken($token) {
 function updateUserPassword($user_id, $new_password) {
     global $conn;
     
-    $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE users SET password = ?, reset_token = NULL, reset_token_expire = NULL WHERE id = ?");
     
     try {
         $stmt->execute([$new_password, $user_id]);
-        
-        // Delete all reset tokens for this user
-        $stmt = $conn->prepare("DELETE FROM password_reset_tokens WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-        
         return true;
     } catch (Exception $e) {
         return false;
