@@ -91,19 +91,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user = $stmt->fetch();
 
             if ($user) {
-                // Generate reset token (valid for 1 hour)
-                $token = bin2hex(random_bytes(32));
-                $expire = date('Y-m-d H:i:s', strtotime('+1 hour'));
-
-                // Save token to database
-                $stmt = $conn->prepare("UPDATE users SET reset_token = :token, reset_token_expire = :expire WHERE id = :id");
-                $stmt->execute([':token' => $token, ':expire' => $expire, ':id' => $user['id']]);
-
-                // display the reset link directly since there is no email address
-                $success_message = "Password reset link: <code style='background:#f0f0f0;padding:5px;word-break:break-all;'>reset_password.php?token=" . $token . "</code>";
+                // credentials match; allow immediate password change
+                $_SESSION['reset_user_id'] = $user['id'];
+                $success_message = "Please enter your new password below.";
             } else {
                 $error_forgot = "No account found matching that information.";
             }
+        }
+    }
+    // handle form coming back with new password
+    elseif (isset($_POST['reset_password']) && isset($_SESSION['reset_user_id'])) {
+        $new = $_POST['new_password'] ?? '';
+        $confirm = $_POST['confirm_new_password'] ?? '';
+        if (empty($new) || empty($confirm)) {
+            $error_forgot = "Both password fields are required.";
+        } elseif ($new !== $confirm) {
+            $error_forgot = "Passwords do not match.";
+        } else {
+            $stmt = $conn->prepare("UPDATE users SET password = :pw WHERE id = :id");
+            $stmt->execute([':pw' => $new, ':id' => $_SESSION['reset_user_id']]);
+            unset($_SESSION['reset_user_id']);
+            $success_message = "Password successfully updated. You may now log in.";
         }
     }
 }
@@ -202,8 +210,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- FORGOT PASSWORD TAB -->
         <div id="forgot-tab" style="display:none;">
             <p style="text-align: center; color: #64748b; margin-bottom: 15px; font-size: 14px;">
-                Provide your username and full name and a reset link will be shown directly below once verified.
+                Provide your username and full name in order to reset the password directly.
             </p>
+            <?php if (!isset($_SESSION['reset_user_id'])): ?>
             <form method="POST" action="index.php">
                 <input type="hidden" name="forgot_password" value="1">
                 <input type="text" name="recovery_username" placeholder="Username" required>
@@ -213,9 +222,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <p style="color: #d90429; margin-top: 10px; font-size: 14px;"><?php echo $error_forgot; ?></p>
                 <?php endif; ?>
 
-                <button type="submit" class="btn">Send Reset Link</button>
+                <button type="submit" class="btn">Verify</button>
+            </form>
+            <?php else: ?>
+            <!-- reset form shown after verification -->
+            <form method="POST" action="index.php">
+                <input type="hidden" name="reset_password" value="1">
+                <input type="password" name="new_password" placeholder="New Password" required>
+                <input type="password" name="confirm_new_password" placeholder="Confirm New Password" required>
+
+                <?php if (!empty($error_forgot)): ?>
+                    <p style="color: #d90429; margin-top: 10px; font-size: 14px;"><?php echo $error_forgot; ?></p>
+                <?php endif; ?>
+
+                <button type="submit" class="btn">Change Password</button>
             </form>
             <a class="forgot-link" onclick="showTab('login'); document.querySelectorAll('.tab-button')[0].click();">Back to Login</a>
+            <?php endif; ?>
         </div>
 </body>
 </html>
