@@ -204,7 +204,7 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
     <?php if ($active_crop): ?>
         <h3 style="color: #1b4332;">MONITORING &mdash; <?php echo htmlspecialchars($active_crop['name']); ?></h3>
         <div class="value" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
-            <img src="<?php echo htmlspecialchars($active_crop['image_url']); ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px;">
+<img src="<?php echo htmlspecialchars($active_crop['image_url']); ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px; object-fit: cover;">
             <span style="font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 600; color: #1b4332 !important; letter-spacing: 0.5px;">
                 <?php echo htmlspecialchars($active_crop['name']); ?>
             </span>
@@ -222,7 +222,7 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
         
         <div class="value" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
             <?php if ($top_crop): ?>
-                <img src="<?php echo $top_crop['image_url']; ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px;"> 
+<img src="<?php echo $top_crop['image_url']; ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px; object-fit: cover;">
                 <span style="font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 600; color: #1b4332 !important; letter-spacing: 0.5px;"><?php echo $top_crop['name']; ?></span>
             <?php else: ?>
                 <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 600; color: #1b4332 !important;">Analyzing...</span>

@@ -30,21 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name']);
         $temp_min = (float)$_POST['temp_min'];
         $temp_max = (float)$_POST['temp_max'];
-        $hum_min = (float)$_POST['hum_min'];
+ = (float)$        $hum_min_POST['hum_min'];
         $hum_max = (float)$_POST['hum_max'];
         $seasons = $_POST['seasons'] ?? [];
         $crop_id = isset($_POST['crop_id']) ? (int)$_POST['crop_id'] : null;
         
-        // image handling
+        // image handling - store as base64 for cloud hosting (Render has ephemeral filesystem)
         $image_url = '';
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK && $_FILES['image']['size'] > 0) {
-            $upload_dir = 'uploads/crops/';
-            if (!is_dir($upload_dir)) {
-                if (!mkdir($upload_dir, 0755, true)) {
-                    $error = "Failed to create upload directory.";
-                }
-            }
-            
             $file_ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
             // Validate file extension
             $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -52,15 +45,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Invalid file type. Allowed: jpg, jpeg, png, gif, webp";
             }
             
+            // Limit file size to 500KB to keep database reasonable
+            if ($_FILES['image']['size'] > 500000) {
+                $error = "File too large. Maximum size is 500KB.";
+            }
+            
             if (empty($error)) {
-                $file_name = time() . '_' . preg_replace('/[^a-zA-Z0-9_-]/', '', $name) . '.' . $file_ext;
-                $target_path = $upload_dir . $file_name;
-                
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $target_path)) {
-                    $image_url = $target_path;
-                } else {
-                    $error = "Failed to upload image. Check directory permissions.";
-                }
+                // Read file and convert to base64
+                $image_data = file_get_contents($_FILES['image']['tmp_name']);
+                $mime_type = mime_content_type($_FILES['image']['tmp_name']);
+                $image_url = 'data:' . $mime_type . ';base64,' . base64_encode($image_data);
             }
         }
         
@@ -75,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['update_crop']) && $crop_id) {
                 $stmt = $conn->prepare("UPDATE crops SET name=?, image_url=?, ideal_temp_min=?, ideal_temp_max=?, ideal_hum_min=?, ideal_hum_max=?, seasons=? WHERE id=? AND created_by=?");
                 $stmt->execute([$name, $image_url, $temp_min, $temp_max, $hum_min, $hum_max, '{' . implode(',', $seasons) . '}', $crop_id, $_SESSION['user_id']]);
-                // redirect to clear edit_GEt and prevent resubmission
+                // redirect to clear edit_GET and prevent resubmission
                 header("Location: manage_crops.php?message=" . urlencode("Crop '$name' updated successfully!"));
                 exit();
             } else {
@@ -275,7 +269,7 @@ $db_crops = $conn->query("SELECT * FROM crops ORDER BY name")->fetchAll();
                             value="<?php echo htmlspecialchars($edit_crop['name'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
-                        <label>Crop Image</label>
+                        <label>Crop Image (optional, max 500KB)</label>
                         <input type="file" name="image" accept="image/*">
                     </div>
                     <div class="form-group">
