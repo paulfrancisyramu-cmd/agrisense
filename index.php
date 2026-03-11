@@ -20,6 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // ------------------- SIGNUP -------------------
     if (isset($_POST['signup'])) {
+        $fullName = trim($_POST['full_name']);
         $user = trim($_POST['username']);
         $email = trim($_POST['email']);
         $pass = $_POST['password'];
@@ -27,8 +28,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($pass !== $confirm) {
             $error_signup = "Passwords do not match.";
-        } elseif (empty($user) || empty($pass) || empty($email)) {
-            $error_signup = "Username, email, and password are required.";
+        } elseif (empty($fullName) || empty($user) || empty($pass) || empty($email)) {
+            $error_signup = "Full name, username, email, and password are required.";
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error_signup = "Please enter a valid email address.";
         } else {
@@ -45,8 +46,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $error_signup = "Email already registered.";
                 } else {
                     // Insert new user with role farmer
-                    $stmt = $conn->prepare("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, 'farmer')");
-                    $stmt->execute([':username' => $user, ':email' => $email, ':password' => $pass]);
+                    $stmt = $conn->prepare("INSERT INTO users (full_name, username, email, password, role) VALUES (:full_name, :username, :email, :password, 'farmer')");
+                    $stmt->execute([
+                        ':full_name' => $fullName,
+                        ':username' => $user,
+                        ':email' => $email,
+                        ':password' => $pass
+                    ]);
 
                     $success_message = "Account created! You can now login.";
                     // Clear form for next time
@@ -62,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $pass = $_POST['password'];
 
         // Query the database for the user (PDO)
-        $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = :username");
+        $stmt = $conn->prepare("SELECT id, password, role, full_name FROM users WHERE username = :username");
         $stmt->execute([':username' => $user]);
         $data = $stmt->fetch();
 
@@ -71,6 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($pass === $data['password']) {
                 $_SESSION['user_id'] = $data['id'];
                 $_SESSION['role'] = $data['role'];
+                $_SESSION['full_name'] = $data['full_name'] ?? '';
                 header("Location: dashboard.php");
                 exit();
             } else {
@@ -83,18 +90,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // ------------------- FORGOT PASSWORD -------------------
     elseif (isset($_POST['forgot_password'])) {
-        $email = trim($_POST['recovery_email']);
+        $username = trim($_POST['recovery_username']);
+        $fullname = trim($_POST['recovery_fullname']);
 
-        if (empty($email)) {
-            $error_forgot = "Please enter your email address.";
+        if (empty($username) || empty($fullname)) {
+            $error_forgot = "Please enter both your username and full name.";
         } else {
-            // Check if email exists
-            $stmt = $conn->prepare("SELECT id, username, email FROM users WHERE email = :email");
-            $stmt->execute([':email' => $email]);
+            // Check if combination exists
+            $stmt = $conn->prepare("SELECT id, username, email FROM users WHERE username = :username AND full_name = :fullname");
+            $stmt->execute([':username' => $username, ':fullname' => $fullname]);
             $user = $stmt->fetch();
 
             if ($user) {
-                    // Generate reset token (valid for 1 hour)
+                // Generate reset token (valid for 1 hour)
                 $token = bin2hex(random_bytes(32));
                 $expire = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
@@ -103,14 +111,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmt->execute([':token' => $token, ':expire' => $expire, ':id' => $user['id']]);
 
                 // show user success immediately; we'll send the email after the response finishes
-                $success_message = "If the email address you entered is registered, a password reset link has been sent. Please check your inbox. (Check spam too.)";
+                $success_message = "If the information you provided matches an account, a password reset link has been sent to the email on file. Please check your inbox (and spam).";
 
                 // schedule actual email send in shutdown function so the page can render quickly
                 register_shutdown_function(function() use ($user, $token) {
                     sendPasswordResetEmail($user['email'], $user['username'], $token);
                 });
             } else {
-                $error_forgot = "No account found with that email address.";
+                $error_forgot = "No account found matching that information.";
             }
         }
     }
@@ -194,6 +202,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div id="signup-tab" style="display:none;">
             <form method="POST" action="index.php">
                 <input type="hidden" name="signup" value="1">
+                <input type="text" name="full_name" placeholder="Full Name" required value="<?php echo $_POST['full_name'] ?? ''; ?>">
                 <input type="text" name="username" placeholder="Username" required value="<?php echo $_POST['username'] ?? ''; ?>">
                 <input type="email" name="email" placeholder="Email Address" required value="<?php echo $_POST['email'] ?? ''; ?>">
                 <input type="password" name="password" placeholder="Password" required>
@@ -210,11 +219,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- FORGOT PASSWORD TAB -->
         <div id="forgot-tab" style="display:none;">
             <p style="text-align: center; color: #64748b; margin-bottom: 15px; font-size: 14px;">
-                Enter your registered email address to receive a password reset link.
+                Provide your username and full name to receive a password reset link to the email on file.
             </p>
             <form method="POST" action="index.php">
                 <input type="hidden" name="forgot_password" value="1">
-                <input type="email" name="recovery_email" placeholder="Your Email Address" required>
+                <input type="text" name="recovery_username" placeholder="Username" required>
+                <input type="text" name="recovery_fullname" placeholder="Full Name" required>
 
                 <?php if (!empty($error_forgot)): ?>
                     <p style="color: #d90429; margin-top: 10px; font-size: 14px;"><?php echo $error_forgot; ?></p>
