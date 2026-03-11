@@ -20,7 +20,7 @@ include 'includes/dss_logic.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['start_monitoring']) && !empty($_POST['crop'])) {
         $chosenCrop = $_POST['crop'];
-        foreach ($CROP_DATABASE as $c) {
+        foreach ($all_crops as $c) {
             if ($c['name'] === $chosenCrop) {
                 $_SESSION['monitored_crop'] = $c;
                 break;
@@ -37,6 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // active crop data pulled from session (null when not monitoring)
 $active_crop = $_SESSION['monitored_crop'] ?? null;
+
+// Get all crops (default + admin-created)
+$all_crops = get_all_crops($conn);
 
 $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
@@ -81,7 +84,7 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
     $sensor_data['active_season'] = get_current_season($current_temp, $current_hum, $weather['two_week_total'], $settings['rain_threshold']);
     
     $ranked = [];
-    foreach ($CROP_DATABASE as $crop) {
+    foreach ($all_crops as $crop) {
         if (in_array($sensor_data['active_season'], $crop['seasons'])) {
             $temp_mid = (array_sum($crop['ideal_temp']) / 2);
             $hum_mid = (array_sum($crop['ideal_hum']) / 2);
@@ -226,7 +229,7 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
             <form method="post" style="display: flex; gap: 10px; align-items: center;">
                 <label for="crop" style="font-weight: 500;">Monitor crop:</label>
                 <select name="crop" id="crop" required style="padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc;">
-                    <?php foreach ($CROP_DATABASE as $crop): ?>
+                    <?php foreach ($all_crops as $crop): ?>
                         <option value="<?php echo htmlspecialchars($crop['name']); ?>"><?php echo htmlspecialchars($crop['name']); ?></option>
                     <?php endforeach; ?>
                 </select>

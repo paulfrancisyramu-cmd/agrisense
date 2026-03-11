@@ -1,7 +1,7 @@
 <?php
 /**
  * AgriSense - Nagcarlan DA Crop Database
- * Ported from Python/Flask CROP_DATABASE
+ * Combines hardcoded default crops with admin-created crops from database
  */
 
 $CROP_DATABASE = [
@@ -132,3 +132,43 @@ $CROP_DATABASE = [
         "seasons" => ["Hot Dry"]
     ]
 ];
+
+/**
+ * Get all crops (default + admin-created)
+ * Fetches admin crops from database and merges with default crops
+ */
+function get_all_crops($conn = null) {
+    global $CROP_DATABASE;
+    
+    $all_crops = $CROP_DATABASE;
+    
+    // If database connection is provided, fetch admin-created crops
+    if ($conn !== null) {
+        try {
+            $stmt = $conn->query("SELECT * FROM crops ORDER BY name");
+            $admin_crops = $stmt->fetchAll();
+            
+            foreach ($admin_crops as $crop) {
+                // Parse seasons array (PostgreSQL returns as string {a,b,c} or array)
+                $seasons = is_array($crop['seasons']) ? $crop['seasons'] : [];
+                if (is_string($crop['seasons'])) {
+                    $seasons = array_map('trim', explode(',', trim($crop['seasons'], '{}')));
+                }
+                
+                $all_crops[] = [
+                    "name" => $crop['name'],
+                    "image_url" => $crop['image_url'],
+                    "ideal_temp" => [(float)$crop['ideal_temp_min'], (float)$crop['ideal_temp_max']],
+                    "ideal_hum" => [(float)$crop['ideal_hum_min'], (float)$crop['ideal_hum_max']],
+                    "seasons" => $seasons,
+                    "is_admin_created" => true // Flag to identify admin crops
+                ];
+            }
+        } catch (Exception $e) {
+            // If table doesn't exist or error, just return default crops
+            error_log("Error fetching admin crops: " . $e->getMessage());
+        }
+    }
+    
+    return $all_crops;
+}
