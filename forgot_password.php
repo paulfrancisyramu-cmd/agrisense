@@ -198,6 +198,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php endif; ?>
         
         <a href="index.php" class="back-link">← Back to Login</a>
+        <p style="text-align: center; margin-top: 10px; color: #666;">
+            Don't have an account? <a href="register.php" style="color: #22c55e;">Create one</a>
+        </p>
     </div>
 </body>
 </html>
