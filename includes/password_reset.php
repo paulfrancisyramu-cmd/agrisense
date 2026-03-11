@@ -39,6 +39,26 @@ function generateResetToken() {
 function createPasswordResetToken($user_id) {
     global $conn;
     
+    // Create email column in users table if it doesn't exist
+    try {
+        $conn->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255)");
+    } catch (Exception $e) {
+        // Column might already exist, ignore error
+    }
+    
+    // Create table if it doesn't exist
+    try {
+        $conn->exec("CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            token VARCHAR(255) NOT NULL UNIQUE,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+    } catch (Exception $e) {
+        // Table might already exist, ignore error
+    }
+    
     // Delete any existing tokens for this user
     $stmt = $conn->prepare("DELETE FROM password_reset_tokens WHERE user_id = ?");
     $stmt->execute([$user_id]);
@@ -178,6 +198,15 @@ function processForgotPassword($email_or_username) {
     if (!$email_sent) {
         // Log error but don't reveal to user
         error_log("Failed to send password reset email to: " . $send_to);
+        
+        // In development/demo mode, show the link for testing
+        $app_debug = getenv('APP_DEBUG');
+        if ($app_debug === 'true' || $app_debug === true) {
+            return [
+                'success' => true,
+                'message' => 'Email could not be sent. Here is your reset link for testing: ' . $reset_link
+            ];
+        }
     }
     
     // Always return success to prevent email enumeration

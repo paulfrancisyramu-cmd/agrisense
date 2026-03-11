@@ -30,9 +30,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->fetch()) {
                 $error_signup = "Username already exists.";
             } else {
-                // Insert new user with role farmer
-                $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (:username, :password, 'farmer')");
-                $stmt->execute([':username' => $user, ':password' => $pass]);
+                $email = $_POST['email'] ?? '';
+                
+                // Insert new user with role farmer (and email if provided)
+                if (!empty($email)) {
+                    $stmt = $conn->prepare("INSERT INTO users (username, password, role, email) VALUES (:username, :password, 'farmer', :email)");
+                    $stmt->execute([':username' => $user, ':password' => $pass, ':email' => $email]);
+                } else {
+                    $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (:username, :password, 'farmer')");
+                    $stmt->execute([':username' => $user, ':password' => $pass]);
+                }
                 // Auto-login after signup
                 $_SESSION['user_id'] = $conn->lastInsertId();
                 $_SESSION['role'] = 'farmer';
@@ -114,6 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <form method="POST" action="index.php">
                 <input type="hidden" name="signup" value="1">
                 <input type="text" name="username" placeholder="Username" required>
+                <input type="email" name="email" placeholder="Email (for password recovery)">
                 <input type="password" name="password" placeholder="Password" required>
                 <input type="password" name="confirm_password" placeholder="Confirm Password" required>
 
