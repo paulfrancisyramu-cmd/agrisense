@@ -109,15 +109,34 @@ function getUserByEmail($email) {
 function validateResetToken($token) {
     global $conn;
     
+    // Get token from database
     $stmt = $conn->prepare("
-        SELECT user_id 
+        SELECT user_id, expires_at 
         FROM password_reset_tokens 
-        WHERE token = ? AND expires_at > NOW()
+        WHERE token = ?
     ");
     $stmt->execute([$token]);
     $result = $stmt->fetch();
     
-    return $result ? $result['user_id'] : false;
+    if (!$result) {
+        // Token not found in database
+        return false;
+    }
+    
+    // Use PHP time() for comparison (more reliable than database NOW())
+    $expires_timestamp = strtotime($result['expires_at']);
+    $now_timestamp = time();
+    
+    // Debug: uncomment to see what's happening
+    // error_log("Token check - expires: " . $result['expires_at'] . " (" . $expires_timestamp . "), now: " . $now_timestamp);
+    
+    // Check if token has expired
+    if ($now_timestamp > $expires_timestamp) {
+        // Token has expired
+        return false;
+    }
+    
+    return $result['user_id'];
 }
 
 /**
@@ -195,21 +214,16 @@ function processForgotPassword($email_or_username) {
     require_once 'send_email.php';
     $email_sent = sendPasswordResetEmail($send_to, $reset_link);
     
-    if (!$email_sent) {
-        // Log error but don't reveal to user
-        error_log("Failed to send password reset email to: " . $send_to);
-        
-        // In development/demo mode, show the link for testing
-        $app_debug = getenv('APP_DEBUG');
-        if ($app_debug === 'true' || $app_debug === true) {
-            return [
-                'success' => true,
-                'message' => 'Email could not be sent. Here is your reset link for testing: ' . $reset_link
-            ];
-        }
+    // Always return success to prevent email enumeration
+    // In debug mode, also show the link for testing
+    $app_debug = getenv('APP_DEBUG');
+    if ($app_debug === 'true' || $app_debug === true) {
+        return [
+            'success' => true,
+            'message' => 'Password reset link sent to your email. (Debug: ' . $reset_link . ')'
+        ];
     }
     
-    // Always return success to prevent email enumeration
     return [
         'success' => true,
         'message' => 'If an account exists with that email, you will receive a password reset link shortly.'
