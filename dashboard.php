@@ -10,6 +10,34 @@ include 'includes/db_connect.php';
 include 'includes/crops.php';
 include 'includes/dss_logic.php';
 
+// ------------------------------------------------------------------
+// MONITORING STATE MANAGEMENT
+// ------------------------------------------------------------------
+// Use the session to remember which crop (if any) the user is currently
+// monitoring.  When a form is submitted we either start or end the
+// monitoring session and then immediately reload so that the UI reflects
+// the new state.
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['start_monitoring']) && !empty($_POST['crop'])) {
+        $chosenCrop = $_POST['crop'];
+        foreach ($CROP_DATABASE as $c) {
+            if ($c['name'] === $chosenCrop) {
+                $_SESSION['monitored_crop'] = $c;
+                break;
+            }
+        }
+    } elseif (isset($_POST['end_monitoring'])) {
+        unset($_SESSION['monitored_crop']);
+    }
+
+    // redirect so refreshes/auto‑updates reflect the new state
+    header("Location: dashboard.php");
+    exit();
+}
+
+// active crop data pulled from session (null when not monitoring)
+$active_crop = $_SESSION['monitored_crop'] ?? null;
+
 $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
@@ -46,7 +74,8 @@ $sensor_data = [
 */
 $top_crop = null;
 // Only run the recommendation algorithm if we actually have live hardware data
-if ($sensor_data['temperature'] !== "--") {
+// *and* the farmer has not explicitly started monitoring a particular crop.
+if ($sensor_data['temperature'] !== "--" && !$active_crop) {
     $current_temp = (float)$sensor_data['temperature'];
     $current_hum = (float)$sensor_data['humidity'];
     $sensor_data['active_season'] = get_current_season($current_temp, $current_hum, $weather['two_week_total'], $settings['rain_threshold']);
@@ -150,30 +179,63 @@ if ($sensor_data['temperature'] !== "--") {
             </div>
 
            <div class="card recommendation-card" id="card-ideal-crop">
-    <h3 style="color: #1b4332;">IDEAL CROP</h3> 
-    
-    <div class="value" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
-        <?php if ($top_crop): ?>
-            <img src="<?php echo $top_crop['image_url']; ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px;"> 
-            <span style="font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 600; color: #1b4332 !important; letter-spacing: 0.5px;"><?php echo $top_crop['name']; ?></span>
-        <?php else: ?>
-            <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 600; color: #1b4332 !important;">Analyzing...</span>
-        <?php endif; ?>
-    </div>
+    <?php if ($active_crop): ?>
+        <h3 style="color: #1b4332;">MONITORING &mdash; <?php echo htmlspecialchars($active_crop['name']); ?></h3>
+        <div class="value" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+            <img src="<?php echo htmlspecialchars($active_crop['image_url']); ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px;">
+            <span style="font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 600; color: #1b4332 !important; letter-spacing: 0.5px;">
+                <?php echo htmlspecialchars($active_crop['name']); ?>
+            </span>
+        </div>
+        <div style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #1b4332; margin-top: 10px; font-weight: 500;">
+            Ideal: <?php echo $active_crop['ideal_temp'][0] . '-' . $active_crop['ideal_temp'][1]; ?>°C | <?php echo $active_crop['ideal_hum'][0] . '-' . $active_crop['ideal_hum'][1]; ?>%
+        </div>
+        <form method="post" style="margin-top: 15px;">
+            <button type="submit" name="end_monitoring" style="padding: 8px 14px; background: #d90429; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                End Monitoring
+            </button>
+        </form>
+    <?php else: ?>
+        <h3 style="color: #1b4332;">IDEAL CROP</h3>
+        
+        <div class="value" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+            <?php if ($top_crop): ?>
+                <img src="<?php echo $top_crop['image_url']; ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px;"> 
+                <span style="font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 600; color: #1b4332 !important; letter-spacing: 0.5px;"><?php echo $top_crop['name']; ?></span>
+            <?php else: ?>
+                <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 600; color: #1b4332 !important;">Analyzing...</span>
+            <?php endif; ?>
+        </div>
 
-    <?php if ($top_crop): ?>
-    <div style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #1b4332; margin-top: 10px; font-weight: 500;">
-        Ideal: <?php echo $top_crop['req_temp']; ?> | <?php echo $top_crop['req_hum']; ?>
-    </div>
+        <?php if ($top_crop): ?>
+        <div style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #1b4332; margin-top: 10px; font-weight: 500;">
+            Ideal: <?php echo $top_crop['req_temp']; ?> | <?php echo $top_crop['req_hum']; ?>
+        </div>
+        <?php endif; ?>
+
+        <div class="subtext" style="font-family: 'Poppins', sans-serif; margin-top: 8px; color: #1b4332; background: transparent; padding: 0;">
+            <?php if ($top_crop): ?>
+                <?php echo $top_crop['match']; ?>% Match for current season
+            <?php else: ?>
+                Gathering metrics...
+            <?php endif; ?>
+        </div>
+
+        <!-- selection form always visible when not monitoring -->
+        <div style="margin-top: 20px;">
+            <form method="post" style="display: flex; gap: 10px; align-items: center;">
+                <label for="crop" style="font-weight: 500;">Monitor crop:</label>
+                <select name="crop" id="crop" required style="padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc;">
+                    <?php foreach ($CROP_DATABASE as $crop): ?>
+                        <option value="<?php echo htmlspecialchars($crop['name']); ?>"><?php echo htmlspecialchars($crop['name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="submit" name="start_monitoring" style="padding: 8px 14px; background: #0077b6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                    Start Monitoring
+                </button>
+            </form>
+        </div>
     <?php endif; ?>
-
-    <div class="subtext" style="font-family: 'Poppins', sans-serif; margin-top: 8px; color: #1b4332; background: transparent; padding: 0;">
-        <?php if ($top_crop): ?>
-            <?php echo $top_crop['match']; ?>% Match for current season
-        <?php else: ?>
-            Gathering metrics...
-        <?php endif; ?>
-    </div>
 </div>
 
         </div> 
