@@ -94,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user = $stmt->fetch();
 
             if ($user) {
-                // Generate reset token (valid for 1 hour)
+                    // Generate reset token (valid for 1 hour)
                 $token = bin2hex(random_bytes(32));
                 $expire = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
@@ -102,16 +102,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmt = $conn->prepare("UPDATE users SET reset_token = :token, reset_token_expire = :expire WHERE id = :id");
                 $stmt->execute([':token' => $token, ':expire' => $expire, ':id' => $user['id']]);
 
-                // Send email with reset link
-                $email_sent = sendPasswordResetEmail($user['email'], $user['username'], $token);
-                
-                if ($email_sent) {
-                    $success_message = "Password reset link has been sent to your email address. Please check your inbox (and spam folder).";
-                } else {
-                    // Fallback: show token for testing purposes
-                    $success_message = "Email could not be sent. For testing, use this link: 
-                        <code style='background: #f0f0f0; padding: 10px; word-break: break-all; display: block; margin-top: 5px;'>reset_password.php?token=" . $token . "</code>";
-                }
+                // show user success immediately; we'll send the email after the response finishes
+                $success_message = "If the email address you entered is registered, a password reset link has been sent. Please check your inbox. (Check spam too.)";
+
+                // schedule actual email send in shutdown function so the page can render quickly
+                register_shutdown_function(function() use ($user, $token) {
+                    sendPasswordResetEmail($user['email'], $user['username'], $token);
+                });
             } else {
                 $error_forgot = "No account found with that email address.";
             }
