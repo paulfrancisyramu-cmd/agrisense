@@ -79,8 +79,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // ------------------- FORGOT PASSWORD -------------------
     elseif (isset($_POST['forgot_password'])) {
-        $username = trim($_POST['recovery_username']);
-        $fullname = trim($_POST['recovery_fullname']);
+        // use ?? to avoid undefined index notices if keys are missing
+        $username = trim($_POST['recovery_username'] ?? '');
+        $fullname = trim($_POST['recovery_fullname'] ?? '');
+        // reset any previous username stored (start fresh each attempt)
+        unset($_SESSION['reset_username']);
 
         if (empty($username) || empty($fullname)) {
             $error_forgot = "Please enter both your username and full name.";
@@ -227,8 +230,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php if (!isset($_SESSION['reset_user_id'])): ?>
             <form method="POST" action="index.php">
                 <input type="hidden" name="forgot_password" value="1">
-                <input type="text" name="recovery_username" placeholder="Username" required>
-                <input type="text" name="recovery_fullname" placeholder="Full Name" required>
+                <input type="text" name="recovery_username" placeholder="Username" required value="<?php echo htmlspecialchars($_POST['recovery_username'] ?? ''); ?>">
+                <input type="text" name="recovery_fullname" placeholder="Full Name" required value="<?php echo htmlspecialchars($_POST['recovery_fullname'] ?? ''); ?>">
 
                 <?php if (!empty($error_forgot)): ?>
                     <p style="color: #d90429; margin-top: 10px; font-size: 14px;"><?php echo $error_forgot; ?></p>
