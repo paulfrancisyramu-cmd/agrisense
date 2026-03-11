@@ -33,9 +33,6 @@ if ($data && isset($data['temperature']) && isset($data['humidity'])) {
     // Get the real 14-day rainfall total
     $rain_forecast = (float)$weather['two_week_total']; 
 
-    // Get all crops (default + admin-created)
-    $all_crops = get_all_crops($conn);
-
     // 2.5 Only log a new row when values actually change
     $last_row = $conn->query("SELECT temp, hum, rain_forecast FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
     if ($last_row) {
@@ -58,7 +55,7 @@ if ($data && isset($data['temperature']) && isset($data['humidity'])) {
     $active_season = get_current_season($temp, $hum, $rain_forecast, $settings['rain_threshold']);
     
     $recommendation = "No suitable crop found for " . $active_season;
-    foreach ($all_crops as $crop) {
+    foreach ($CROP_DATABASE as $crop) {
         if (in_array($active_season, $crop['seasons'])) {
             $recommendation = "Plant " . $crop['name'] . " (" . $active_season . ")";
             break; 

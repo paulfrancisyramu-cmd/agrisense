@@ -27,11 +27,6 @@
     <a href="alerts.php" class="<?php echo ($current_page == 'alerts.php') ? 'active' : ''; ?>">
         <img src="https://unpkg.com/lucide-static@latest/icons/bell.svg" width="18" class="icon-white"> Alerts
     </a>
-    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-    <a href="manage_crops.php" class="<?php echo ($current_page == 'manage_crops.php') ? 'active' : ''; ?>">
-        <img src="https://unpkg.com/lucide-static@latest/icons/seedling.svg" width="18" class="icon-white"> Manage Crops
-    </a>
-    <?php endif; ?>
     <a href="settings.php" class="<?php echo ($current_page == 'settings.php') ? 'active' : ''; ?>">
         <img src="https://unpkg.com/lucide-static@latest/icons/settings.svg" width="18" class="icon-white"> Settings
     </a>
@@ -42,4 +37,3 @@
         </a>
     </div>
 </div>
-

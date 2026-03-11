@@ -1,8 +1,9 @@
 <?php
 // reset_password.php
+// Reset password using token
+
 session_start();
 include 'includes/db_connect.php';
-include 'includes/password_reset.php';
 
 // Redirect to dashboard if already logged in
 if (isset($_SESSION['user_id'])) {
@@ -10,43 +11,60 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
-$token = $_GET['token'] ?? '';
-$message = '';
 $error = '';
-$show_form = true;
+$success = '';
+$token = $_GET['token'] ?? '';
+$username = $_GET['user'] ?? '';
 
-// Validate token first
-if (empty($token)) {
-    $error = 'Invalid reset link. Please request a new password reset.';
-    $show_form = false;
+// Validate token parameter
+if (empty($token) || empty($username)) {
+    $error = "Invalid reset link. Please request a new password reset.";
 } else {
-    $user_id = validateResetToken($token);
-    if (!$user_id) {
-        $error = 'This reset link has expired or is invalid. Please request a new password reset.';
-        $show_form = false;
+    // Check if token is valid and not expired
+    $stmt = $conn->prepare("
+        SELECT prt.id, prt.user_id, prt.expires_at, prt.used, u.username 
+        FROM password_reset_tokens prt
+        JOIN users u ON prt.user_id = u.id
+        WHERE prt.token = :token AND u.username = :username
+    ");
+    $stmt->execute([':token' => $token, ':username' => $username]);
+    $reset_request = $stmt->fetch();
+    
+    if (!$reset_request) {
+        $error = "Invalid reset link. Please request a new password reset.";
+    } elseif ($reset_request['used']) {
+        $error = "This reset link has already been used. Please request a new password reset.";
+    } elseif (strtotime($reset_request['expires_at']) < time()) {
+        $error = "This reset link has expired. Please request a new password reset.";
     }
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && $show_form) {
-    $token = $_POST['token'] ?? '';
-    $password = $_POST['password'] ?? '';
+// Handle password reset form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && empty($error)) {
+    $new_password = $_POST['new_password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     
-    if (empty($password)) {
-        $error = 'Please enter a new password.';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters long.';
-    } elseif ($password !== $confirm_password) {
-        $error = 'Passwords do not match.';
+    if (empty($new_password)) {
+        $error = "Please enter a new password.";
+    } elseif (strlen($new_password) < 6) {
+        $error = "Password must be at least 6 characters.";
+    } elseif ($new_password !== $confirm_password) {
+        $error = "Passwords do not match.";
+    } elseif (!$reset_request) {
+        $error = "Invalid request. Please start over.";
     } else {
-        $result = processPasswordReset($token, $password);
+        // Update the user's password
+        $update_stmt = $conn->prepare("UPDATE users SET password = :password WHERE id = :user_id");
+        $update_stmt->execute([
+            ':password' => $new_password,
+            ':user_id' => $reset_request['user_id']
+        ]);
         
-        if ($result['success']) {
-            $message = $result['message'];
-            $show_form = false;
-        } else {
-            $error = $result['message'];
-        }
+        // Mark token as used
+        $used_stmt = $conn->prepare("UPDATE password_reset_tokens SET used = TRUE WHERE id = :id");
+        $used_stmt->execute([':id' => $reset_request['id']]);
+        
+        $success = "Password reset successfully! You can now login with your new password.";
     }
 }
 ?>
@@ -59,198 +77,117 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $show_form) {
     <title>AgriSense - Reset Password</title>
     <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
     <style>
-        .login-body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #40916c 100%);
-            padding: 20px;
-        }
-        
         .login-container {
+            max-width: 450px;
+            margin: 100px auto;
+            padding: 30px;
             background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 420px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
-        .login-container h2 {
-            color: #1b4332;
-            text-align: center;
-            margin-bottom: 10px;
+        .login-body {
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-        }
-        
-        .login-container > p {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            color: #1b4332;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            box-sizing: border-box;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #40916c;
-            box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.15);
         }
         
         .btn {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #40916c 0%, #2d6a4f 100%);
+            padding: 12px;
+            background: #22c55e;
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 5px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 16px;
+            margin-top: 10px;
         }
         
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(45, 106, 79, 0.4);
+            background: #16a34a;
+        }
+        
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
         }
         
         .message {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            text-align: center;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 5px;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
         }
         
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .error {
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 5px;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
         }
         
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .success {
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 5px;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
         }
         
         .back-link {
             display: block;
             text-align: center;
-            margin-top: 20px;
-            color: #40916c;
+            margin-top: 15px;
+            color: #666;
             text-decoration: none;
-            font-weight: 600;
         }
         
         .back-link:hover {
-            text-decoration: underline;
+            color: #22c55e;
         }
         
         .icon-green {
-            filter: brightness(0) saturate(100%) invert(42%) sepia(26%) saturate(1291%) hue-rotate(118deg) brightness(93%) contrast(86%);
-        }
-        
-        .password-requirements {
-            font-size: 12px;
-            color: #666;
-            margin-top: 8px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 6px;
-        }
-        
-        .password-requirements ul {
-            margin: 5px 0 0 0;
-            padding-left: 20px;
+            color: #22c55e;
         }
     </style>
 </head>
 <body class="login-body">
     <div class="login-container">
-        <h2>
-            <img src="https://unpkg.com/lucide-static@latest/icons/leaf.svg" width="32" class="icon-green"> 
+        <h2 style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <img src="https://unpkg.com/lucide-static@latest/icons/leaf.svg" width="28" class="icon-green"> 
             AgriSense
         </h2>
-        <p>Create New Password</p>
-
-        <?php if (!empty($error) && !$show_form): ?>
-            <div class="message error">
-                <?php echo htmlspecialchars($error); ?>
-            </div>
-            <a href="forgot_password.php" class="btn" style="text-decoration: none; display: block; text-align: center; padding: 14px;">
-                Request New Reset Link
-            </a>
-            <a href="index.php" class="back-link">← Back to Login</a>
-        <?php elseif (!empty($message) && !$show_form): ?>
-            <div class="message success">
-                <?php echo htmlspecialchars($message); ?>
-            </div>
-            <a href="index.php" class="btn" style="text-decoration: none; display: block; text-align: center; padding: 14px;">
-                Go to Login
-            </a>
-        <?php else: ?>
-            <?php if (!empty($error)): ?>
-                <div class="message error">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
-
-            <form method="POST" action="reset_password.php">
-                <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
-                
-                <div class="form-group">
-                    <label for="password">New Password</label>
-                    <input type="password" 
-                           id="password" 
-                           name="password" 
-                           placeholder="Enter new password" 
-                           required>
-                    <div class="password-requirements">
-                        <strong>Password requirements:</strong>
-                        <ul>
-                            <li>At least 6 characters long</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="confirm_password">Confirm New Password</label>
-                    <input type="password" 
-                           id="confirm_password" 
-                           name="confirm_password" 
-                           placeholder="Confirm new password" 
-                           required>
-                </div>
-
+        <p>Reset Your Password</p>
+        
+        <?php if ($error): ?>
+            <div class="error"><?php echo htmlspecialchars($error); ?></div>
+            <a href="forgot_password.php" class="back-link">← Request New Reset Link</a>
+        <?php endif; ?>
+        
+        <?php if ($success): ?>
+            <div class="success"><?php echo htmlspecialchars($success); ?></div>
+            <a href="index.php" class="back-link">← Go to Login</a>
+        <?php endif; ?>
+        
+        <?php if (!$error && !$success): ?>
+            <form method="POST" action="reset_password.php?token=<?php echo htmlspecialchars($token); ?>&user=<?php echo htmlspecialchars($username); ?>">
+                <input type="password" name="new_password" placeholder="Enter new password" required>
+                <input type="password" name="confirm_password" placeholder="Confirm new password" required>
                 <button type="submit" class="btn">Reset Password</button>
             </form>
-
             <a href="index.php" class="back-link">← Back to Login</a>
         <?php endif; ?>
     </div>
