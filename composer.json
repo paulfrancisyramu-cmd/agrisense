@@ -1,8 +1,6 @@
 {
     "require": {
         "ext-pgsql": "*",
-        "ext-pdo_pgsql": "*",
-        "php": ">=7.4",
-        "phpmailer/phpmailer": "^6.8"
+        "ext-pdo_pgsql": "*"
     }
 }
