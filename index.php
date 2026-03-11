@@ -30,30 +30,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->fetch()) {
                 $error_signup = "Username already exists.";
             } else {
-                $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-                
-                // Insert new user with role farmer (and email if provided and not empty)
-                if (!empty($email)) {
-                    // Check if email already exists
-                    $stmt = $conn->prepare("SELECT id FROM users WHERE email = :email");
-                    $stmt->execute([':email' => $email]);
-                    if ($stmt->fetch()) {
-                        $error_signup = "Email already registered.";
-                    } else {
-                        $stmt = $conn->prepare("INSERT INTO users (username, password, role, email) VALUES (:username, :password, 'farmer', :email)");
-                        $stmt->execute([':username' => $user, ':password' => $pass, ':email' => $email]);
-                        $_SESSION['user_id'] = $conn->lastInsertId();
-                        $_SESSION['role'] = 'farmer';
-                        header("Location: dashboard.php");
-                        exit();
-                    }
-                } else {
+                // Simple signup - insert user directly
+                try {
                     $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (:username, :password, 'farmer')");
                     $stmt->execute([':username' => $user, ':password' => $pass]);
+                    
+                    // Success - redirect
                     $_SESSION['user_id'] = $conn->lastInsertId();
                     $_SESSION['role'] = 'farmer';
                     header("Location: dashboard.php");
                     exit();
+                } catch (Exception $e) {
+                    $error_signup = "Signup failed: " . $e->getMessage();
                 }
             }
         }
