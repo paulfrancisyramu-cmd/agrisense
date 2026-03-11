@@ -138,14 +138,25 @@ $logs = $stmt->fetchAll();
 
                             $season = get_current_season($temp, $hum, $rain, $rain_threshold);
 
+                            // ranking logic mirrors dashboard/recommendations so admin crops
+                            // are considered and out‑of‑season items get a small penalty
                             $ranked = [];
                             foreach ($all_crops as $crop) {
-                                if (in_array($season, $crop['seasons'])) {
-                                    $avgIdeal = (array_sum($crop['ideal_temp']) / 2);
-                                    $score = 100 - (abs($temp - $avgIdeal) * 5);
+                                $season_ok = in_array($season, $crop['seasons']);
+                                if ($season_ok || !empty($crop['is_admin_created'])) {
+                                    $temp_mid = (array_sum($crop['ideal_temp']) / 2);
+                                    $hum_mid = (array_sum($crop['ideal_hum']) / 2);
+
+                                    $temp_score = 100 - (abs($temp - $temp_mid) * 5);
+                                    $hum_score = 100 - (abs($hum - $hum_mid) * 5);
+                                    $combined = ($temp_score + $hum_score) / 2;
+                                    if (!$season_ok) {
+                                        $combined -= 25;
+                                    }
+
                                     $ranked[] = [
                                         'name' => $crop['name'],
-                                        'match' => max(0, (int)$score)
+                                        'match' => max(0, (int)$combined)
                                     ];
                                 }
                             }
