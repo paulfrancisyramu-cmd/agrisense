@@ -89,15 +89,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error_forgot = "Please enter both your username and full name.";
         } else {
             // Check if combination exists
-            $stmt = $conn->prepare("SELECT id FROM users WHERE username = :username AND full_name = :fullname");
+            // make sure we fetch the username as well so we can show it later
+            $stmt = $conn->prepare("SELECT id, username FROM users WHERE username = :username AND full_name = :fullname");
             $stmt->execute([':username' => $username, ':fullname' => $fullname]);
             $user = $stmt->fetch();
 
             if ($user) {
                 // credentials match; allow immediate password change
                 $_SESSION['reset_user_id'] = $user['id'];
-                // also remember the username so we can display it on the reset form
-                $_SESSION['reset_username'] = $user['username'];
+                // the query now returns the username, but we can fall back to the
+                // input if for some reason the column was missing.
+                $_SESSION['reset_username'] = $user['username'] ?? $username;
                 $success_message = "Please enter your new password below.";
             } else {
                 $error_forgot = "No account found matching that information.";

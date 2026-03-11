@@ -13,6 +13,9 @@ include 'includes/dss_logic.php';
 // ------------------------------------------------------------------
 // MONITORING STATE MANAGEMENT
 // ------------------------------------------------------------------
+// get the list of crops immediately so that POST handlers can use it too
+$all_crops = get_all_crops($conn);
+
 // Use the session to remember which crop (if any) the user is currently
 // monitoring.  When a form is submitted we either start or end the
 // monitoring session and then immediately reload so that the UI reflects
@@ -37,9 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // active crop data pulled from session (null when not monitoring)
 $active_crop = $_SESSION['monitored_crop'] ?? null;
-
-// Get all crops (default + admin-created)
-$all_crops = get_all_crops($conn);
 
 $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
@@ -86,7 +86,10 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
     
     $ranked = [];
     foreach ($all_crops as $crop) {
-        if (in_array($sensor_data['active_season'], $crop['seasons'])) {
+        // treat admin-created crops more leniently; they should still show
+        // up even if they happen to be out of season (helps testing).
+        $season_ok = in_array($sensor_data['active_season'], $crop['seasons']);
+        if ($season_ok || !empty($crop['is_admin_created'])) {
             $temp_mid = (array_sum($crop['ideal_temp']) / 2);
             $hum_mid = (array_sum($crop['ideal_hum']) / 2);
             
@@ -94,6 +97,10 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
             $hum_score = 100 - (abs($current_hum - $hum_mid) * 5);
             
             $combined_score = ($temp_score + $hum_score) / 2;
+            if (!$season_ok) {
+                // penalise if we are calculating out‑of‑season
+                $combined_score -= 25;
+            }
             
             $ranked[] = [
                 "name" => $crop['name'],
@@ -106,7 +113,6 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
     }
     if (!empty($ranked)) {
         usort($ranked, function($a, $b) { 
-            // Add the alphabetical tie-breaker here too!
             if ($a['match'] == $b['match']) return strcmp($a['name'], $b['name']);
             return $b['match'] <=> $a['match']; 
         });
