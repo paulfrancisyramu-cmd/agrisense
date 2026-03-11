@@ -106,6 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?php endif; ?>
 
                 <button type="submit" class="btn">Access Dashboard</button>
+                <a href="forgot_password.php" style="display: block; text-align: center; margin-top: 15px; color: #40916c; text-decoration: none; font-size: 14px;">Forgot Password?</a>
             </form>
         </div>
 

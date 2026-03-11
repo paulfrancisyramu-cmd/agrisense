@@ -1,5 +1,5 @@
 <?php
-// reset_password.php
+// forgot_password.php
 session_start();
 include 'includes/db_connect.php';
 include 'includes/password_reset.php';
@@ -10,40 +10,20 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
-$token = $_GET['token'] ?? '';
 $message = '';
 $error = '';
-$show_form = true;
+$email = '';
 
-// Validate token first
-if (empty($token)) {
-    $error = 'Invalid reset link. Please request a new password reset.';
-    $show_form = false;
-} else {
-    $user_id = validateResetToken($token);
-    if (!$user_id) {
-        $error = 'This reset link has expired or is invalid. Please request a new password reset.';
-        $show_form = false;
-    }
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST" && $show_form) {
-    $token = $_POST['token'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = trim($_POST['email'] ?? '');
     
-    if (empty($password)) {
-        $error = 'Please enter a new password.';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters long.';
-    } elseif ($password !== $confirm_password) {
-        $error = 'Passwords do not match.';
+    if (empty($email)) {
+        $error = 'Please enter your email address or username.';
     } else {
-        $result = processPasswordReset($token, $password);
+        $result = processForgotPassword($email);
         
         if ($result['success']) {
             $message = $result['message'];
-            $show_form = false;
         } else {
             $error = $result['message'];
         }
@@ -56,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $show_form) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriSense - Reset Password</title>
+    <title>AgriSense - Forgot Password</title>
     <link rel="stylesheet" href="static/style.css?v=<?php echo time(); ?>">
     <style>
         .login-body {
@@ -87,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $show_form) {
             gap: 10px;
         }
         
-        .login-container > p {
+        .login-container p {
             color: #666;
             text-align: center;
             margin-bottom: 30px;
@@ -175,20 +155,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $show_form) {
         .icon-green {
             filter: brightness(0) saturate(100%) invert(42%) sepia(26%) saturate(1291%) hue-rotate(118deg) brightness(93%) contrast(86%);
         }
-        
-        .password-requirements {
-            font-size: 12px;
-            color: #666;
-            margin-top: 8px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 6px;
-        }
-        
-        .password-requirements ul {
-            margin: 5px 0 0 0;
-            padding-left: 20px;
-        }
     </style>
 </head>
 <body class="login-body">
@@ -197,22 +163,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $show_form) {
             <img src="https://unpkg.com/lucide-static@latest/icons/leaf.svg" width="32" class="icon-green"> 
             AgriSense
         </h2>
-        <p>Create New Password</p>
+        <p>Reset Your Password</p>
 
-        <?php if (!empty($error) && !$show_form): ?>
-            <div class="message error">
-                <?php echo htmlspecialchars($error); ?>
-            </div>
-            <a href="forgot_password.php" class="btn" style="text-decoration: none; display: block; text-align: center; padding: 14px;">
-                Request New Reset Link
-            </a>
-            <a href="index.php" class="back-link">← Back to Login</a>
-        <?php elseif (!empty($message) && !$show_form): ?>
+        <?php if (!empty($message)): ?>
             <div class="message success">
                 <?php echo htmlspecialchars($message); ?>
             </div>
             <a href="index.php" class="btn" style="text-decoration: none; display: block; text-align: center; padding: 14px;">
-                Go to Login
+                Back to Login
             </a>
         <?php else: ?>
             <?php if (!empty($error)): ?>
@@ -221,34 +179,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $show_form) {
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="reset_password.php">
-                <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
-                
+            <form method="POST" action="forgot_password.php">
                 <div class="form-group">
-                    <label for="password">New Password</label>
-                    <input type="password" 
-                           id="password" 
-                           name="password" 
-                           placeholder="Enter new password" 
-                           required>
-                    <div class="password-requirements">
-                        <strong>Password requirements:</strong>
-                        <ul>
-                            <li>At least 6 characters long</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="confirm_password">Confirm New Password</label>
-                    <input type="password" 
-                           id="confirm_password" 
-                           name="confirm_password" 
-                           placeholder="Confirm new password" 
+                    <label for="email">Email Address or Username</label>
+                    <input type="text" 
+                           id="email" 
+                           name="email" 
+                           placeholder="Enter your email or username" 
+                           value="<?php echo htmlspecialchars($email); ?>"
                            required>
                 </div>
 
-                <button type="submit" class="btn">Reset Password</button>
+                <button type="submit" class="btn">Send Reset Link</button>
             </form>
 
             <a href="index.php" class="back-link">← Back to Login</a>
