@@ -13,6 +13,9 @@ $settings = $conn->query("SELECT * FROM system_settings WHERE id=1")->fetch();
 $latest = $conn->query("SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1")->fetch();
 $weather = fetch_micro_season_forecast();
 
+// Get all crops (default + admin-created)
+$all_crops = get_all_crops($conn);
+
 // --- HARDWARE FRESHNESS CHECK (MATCHES DASHBOARD) ---
 $hb = $conn->query("SELECT last_seen FROM device_heartbeat WHERE id=1")->fetch();
 $current_time = time();
@@ -43,7 +46,7 @@ if (!$no_data) {
     $active_season = get_current_season($current_temp, $current_hum, $weather['two_week_total'], $settings['rain_threshold']);
     
     $ranked = [];
-    foreach ($CROP_DATABASE as $crop) {
+    foreach ($all_crops as $crop) {
         if (in_array($active_season, $crop['seasons'])) {
             $temp_mid = (array_sum($crop['ideal_temp']) / 2);
             $hum_mid = (array_sum($crop['ideal_hum']) / 2);

@@ -1,23 +1,45 @@
+# AgriSense - Admin Crop Management Implementation
 
-# TODO - Gmail SMTP Forgot Password Implementation
+## Tasks Completed:
+- [x] 1. Create SQL schema for crops table (schema_crops.sql)
+- [x] 2. Create manage_crops.php for admin to add/edit/delete crops
+- [x] 3. Modify includes/crops.php to fetch from database (get_all_crops function)
+- [x] 4. Update sidebar.php to include crop management link for admin
+- [x] 5. Update dashboard.php to use all_crops
+- [x] 6. Update recommendations.php to use all_crops
+- [x] 7. Update data_logs.php to use all_crops
+- [x] 8. Update api/save_data.php to use all_crops
 
-## Completed
-- [x] Analyzed project structure and existing code
-- [x] Created forgot_password.php page
-- [x] Created reset_password.php page
-- [x] Modified index.php to add Forgot Password link
-- [x] Created includes/send_email.php with Mailgun API
-- [x] Created includes/password_reset.php for token management
-- [x] Updated agrisense.env with Mailgun configuration
+## Files Created/Modified:
+- `schema_crops.sql` - Database schema for crops table
+- `manage_crops.php` - Admin crop management page
+- `includes/crops.php` - Added get_all_crops() function
+- `includes/sidebar.php` - Added "Manage Crops" link for admin
+- `dashboard.php` - Updated to use all_crops
+- `recommendations.php` - Updated to use all_crops
+- `data_logs.php` - Updated to use all_crops
+- `api/save_data.php` - Updated to use all_crops
 
-## Next Steps (User Action Required)
-1. Sign up at mailgun.com (free: 5,000 emails/month)
-2. Get your API key and domain from Mailgun dashboard
-3. Update agrisense.env with your actual credentials:
-   - MAILGUN_DOMAIN=your-domain.mailgun.org
-   - MAILGUN_API_KEY=key-xxxxxxxxxxxxxx
+## Next Step - Run SQL Schema:
+Execute the following SQL in your database to create the crops table:
 
-## Testing
-- Make sure APP_DEBUG=true in .env to see reset links in browser
-- After testing, set APP_DEBUG=false for security
+```sql
+-- Run schema_crops.sql in your PostgreSQL database
+```
+
+Or run this SQL directly:
+```sql
+CREATE TABLE IF NOT EXISTS crops (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    image_url TEXT,
+    ideal_temp_min FLOAT NOT NULL,
+    ideal_temp_max FLOAT NOT NULL,
+    ideal_hum_min FLOAT NOT NULL,
+    ideal_hum_max FLOAT NOT NULL,
+    seasons TEXT[] NOT NULL,
+    created_by INTEGER REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 

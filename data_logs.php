@@ -14,6 +14,9 @@ include 'includes/dss_logic.php';
 $settings = $conn->query("SELECT rain_threshold FROM system_settings WHERE id=1")->fetch();
 $rain_threshold = $settings ? (float)$settings['rain_threshold'] : 15.0;
 
+// Get all crops (default + admin-created)
+$all_crops = get_all_crops($conn);
+
 // Get today's date in YYYY-MM-DD format based on Manila time
 $today = date('Y-m-d');
 
@@ -136,7 +139,7 @@ $logs = $stmt->fetchAll();
                             $season = get_current_season($temp, $hum, $rain, $rain_threshold);
 
                             $ranked = [];
-                            foreach ($CROP_DATABASE as $crop) {
+                            foreach ($all_crops as $crop) {
                                 if (in_array($season, $crop['seasons'])) {
                                     $avgIdeal = (array_sum($crop['ideal_temp']) / 2);
                                     $score = 100 - (abs($temp - $avgIdeal) * 5);
