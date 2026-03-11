@@ -24,6 +24,7 @@ $is_admin = $_SESSION['role'] === 'admin';
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriSense - Settings</title>
     <link rel="stylesheet" href="static/style.css?v=13">
     <style>
