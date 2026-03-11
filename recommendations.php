@@ -25,7 +25,8 @@ $is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
 
 // Recommendations are only allowed when hardware is live AND we actually have a temp+hum row.
 $has_sensor_row = ($latest && isset($latest['temp'], $latest['hum']));
-$no_data = (!$is_live || !$has_sensor_row);
+// only consider there to be no data if we literally have no row at all
+$no_data = (!$has_sensor_row);
 
 
 // --- FAKE DATA FOR TESTING ---

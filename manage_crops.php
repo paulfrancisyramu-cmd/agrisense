@@ -11,17 +11,31 @@ include 'includes/crops.php';
 $message = '';
 $error = '';
 
+// show messages passed via GET after redirect
+if (isset($_GET['message'])) {
+    $message = $_GET['message'];
+}
+
+// if editing, load crop data to prefill form later
+$edit_crop = null;
+if (isset($_GET['edit'])) {
+    $edit_id = (int)$_GET['edit'];
+    $stmt = $conn->prepare("SELECT * FROM crops WHERE id = ? AND created_by = ?");
+    $stmt->execute([$edit_id, $_SESSION['user_id']]);
+    $edit_crop = $stmt->fetch();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['add_crop'])) {
-        // Add new crop
+    if (isset($_POST['add_crop']) || isset($_POST['update_crop'])) {
         $name = trim($_POST['name']);
         $temp_min = (float)$_POST['temp_min'];
         $temp_max = (float)$_POST['temp_max'];
         $hum_min = (float)$_POST['hum_min'];
         $hum_max = (float)$_POST['hum_max'];
         $seasons = $_POST['seasons'] ?? [];
+        $crop_id = isset($_POST['crop_id']) ? (int)$_POST['crop_id'] : null;
         
-        // Handle image upload
+        // image handling
         $image_url = '';
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $upload_dir = 'uploads/crops/';
@@ -37,15 +51,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        // Use default image if none uploaded
+        if (empty($image_url) && $edit_crop && isset($edit_crop['image_url'])) {
+            $image_url = $edit_crop['image_url'];
+        }
         if (empty($image_url)) {
             $image_url = 'https://img.icons8.com/color/96/plant.png';
         }
         
         if (!empty($name) && $temp_min < $temp_max && $hum_min < $hum_max && !empty($seasons)) {
-            $stmt = $conn->prepare("INSERT INTO crops (name, image_url, ideal_temp_min, ideal_temp_max, ideal_hum_min, ideal_hum_max, seasons, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$name, $image_url, $temp_min, $temp_max, $hum_min, $hum_max, '{' . implode(',', $seasons) . '}', $_SESSION['user_id']]);
-            $message = "Crop '$name' added successfully!";
+            if (isset($_POST['update_crop']) && $crop_id) {
+                $stmt = $conn->prepare("UPDATE crops SET name=?, image_url=?, ideal_temp_min=?, ideal_temp_max=?, ideal_hum_min=?, ideal_hum_max=?, seasons=? WHERE id=? AND created_by=?");
+                $stmt->execute([$name, $image_url, $temp_min, $temp_max, $hum_min, $hum_max, '{' . implode(',', $seasons) . '}', $crop_id, $_SESSION['user_id']]);
+                // redirect to clear edit_GEt and prevent resubmission
+                header("Location: manage_crops.php?message=" . urlencode("Crop '$name' updated successfully!"));
+                exit();
+            } else {
+                $stmt = $conn->prepare("INSERT INTO crops (name, image_url, ideal_temp_min, ideal_temp_max, ideal_hum_min, ideal_hum_max, seasons, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$name, $image_url, $temp_min, $temp_max, $hum_min, $hum_max, '{' . implode(',', $seasons) . '}', $_SESSION['user_id']]);
+                header("Location: manage_crops.php?message=" . urlencode("Crop '$name' added successfully!"));
+                exit();
+            }
         } else {
             $error = "Please fill all fields correctly. Temperature and humidity min must be less than max.";
         }
@@ -54,7 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $crop_id = (int)$_POST['crop_id'];
         $stmt = $conn->prepare("DELETE FROM crops WHERE id = ? AND created_by = ?");
         $stmt->execute([$crop_id, $_SESSION['user_id']]);
-        $message = "Crop deleted successfully!";
+        header("Location: manage_crops.php?message=" . urlencode("Crop deleted successfully!"));
+        exit();
     }
 }
 
@@ -218,12 +244,20 @@ $db_crops = $conn->query("SELECT * FROM crops ORDER BY name")->fetchAll();
 
         <!-- Add New Crop Form -->
         <div class="form-container">
-            <h3><img src="https://unpkg.com/lucide-static@latest/icons/plus-circle.svg" width="20" class="icon-green"> Add New Crop</h3>
+            <?php if ($edit_crop): ?>
+                <h3><img src="https://unpkg.com/lucide-static@latest/icons/edit-2.svg" width="20" class="icon-green"> Edit Crop</h3>
+            <?php else: ?>
+                <h3><img src="https://unpkg.com/lucide-static@latest/icons/plus-circle.svg" width="20" class="icon-green"> Add New Crop</h3>
+            <?php endif; ?>
             <form method="POST" enctype="multipart/form-data">
+                <?php if ($edit_crop): ?>
+                    <input type="hidden" name="crop_id" value="<?php echo $edit_crop['id']; ?>">
+                <?php endif; ?>
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Crop Name *</label>
-                        <input type="text" name="name" placeholder="e.g., Rice, Corn, Tomato" required>
+                        <input type="text" name="name" placeholder="e.g., Rice, Corn, Tomato" required
+                            value="<?php echo htmlspecialchars($edit_crop['name'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
                         <label>Crop Image</label>
@@ -231,30 +265,46 @@ $db_crops = $conn->query("SELECT * FROM crops ORDER BY name")->fetchAll();
                     </div>
                     <div class="form-group">
                         <label>Min Temperature (°C) *</label>
-                        <input type="number" step="0.1" name="temp_min" placeholder="e.g., 20" required>
+                        <input type="number" step="0.1" name="temp_min" placeholder="e.g., 20" required
+                            value="<?php echo htmlspecialchars($edit_crop['ideal_temp_min'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
                         <label>Max Temperature (°C) *</label>
-                        <input type="number" step="0.1" name="temp_max" placeholder="e.g., 30" required>
+                        <input type="number" step="0.1" name="temp_max" placeholder="e.g., 30" required
+                            value="<?php echo htmlspecialchars($edit_crop['ideal_temp_max'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
                         <label>Min Humidity (%) *</label>
-                        <input type="number" step="0.1" name="hum_min" placeholder="e.g., 60" required>
+                        <input type="number" step="0.1" name="hum_min" placeholder="e.g., 60" required
+                            value="<?php echo htmlspecialchars($edit_crop['ideal_hum_min'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
                         <label>Max Humidity (%) *</label>
-                        <input type="number" step="0.1" name="hum_max" placeholder="e.g., 80" required>
+                        <input type="number" step="0.1" name="hum_max" placeholder="e.g., 80" required
+                            value="<?php echo htmlspecialchars($edit_crop['ideal_hum_max'] ?? ''); ?>">
                     </div>
                     <div class="form-group form-group-full">
                         <label>Seasons *</label>
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="seasons[]" value="Wet/Rainy"> Wet/Rainy</label>
-                            <label><input type="checkbox" name="seasons[]" value="Cool Dry"> Cool Dry</label>
-                            <label><input type="checkbox" name="seasons[]" value="Hot Dry"> Hot Dry</label>
+                            <?php
+                            $selectedSeasons = [];
+                            if ($edit_crop) {
+                                $temp = is_array($edit_crop['seasons']) ? $edit_crop['seasons'] : explode(',', trim($edit_crop['seasons'], '{}'));
+                                $selectedSeasons = array_map('trim', $temp);
+                            }
+                            ?>
+                            <label><input type="checkbox" name="seasons[]" value="Wet/Rainy" <?php echo in_array('Wet/Rainy', $selectedSeasons) ? 'checked' : ''; ?>> Wet/Rainy</label>
+                            <label><input type="checkbox" name="seasons[]" value="Cool Dry" <?php echo in_array('Cool Dry', $selectedSeasons) ? 'checked' : ''; ?>> Cool Dry</label>
+                            <label><input type="checkbox" name="seasons[]" value="Hot Dry" <?php echo in_array('Hot Dry', $selectedSeasons) ? 'checked' : ''; ?>> Hot Dry</label>
                         </div>
                     </div>
                 </div>
-                <button type="submit" name="add_crop" class="btn-add">Add Crop</button>
+                <?php if ($edit_crop): ?>
+                    <button type="submit" name="update_crop" class="btn-add">Save Changes</button>
+                    <a href="manage_crops.php" class="btn-add" style="background:#64748b; text-decoration:none; display:inline-block;">Cancel</a>
+                <?php else: ?>
+                    <button type="submit" name="add_crop" class="btn-add">Add Crop</button>
+                <?php endif; ?>
             </form>
         </div>
 
@@ -290,6 +340,7 @@ $db_crops = $conn->query("SELECT * FROM crops ORDER BY name")->fetchAll();
                             <?php endforeach; ?>
                         </div>
                         <div class="actions">
+                            <a href="manage_crops.php?edit=<?php echo $crop['id']; ?>" class="btn-delete" style="background:#40916c;">Edit</a>
                             <form method="POST" onsubmit="return confirm('Are you sure you want to delete this crop?');">
                                 <input type="hidden" name="crop_id" value="<?php echo $crop['id']; ?>">
                                 <button type="submit" name="delete_crop" class="btn-delete">Delete</button>

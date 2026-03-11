@@ -53,9 +53,10 @@ $last_seen = isset($hb['last_seen']) ? strtotime($hb['last_seen']) : 0;
 $timeout = isset($settings['heartbeat_timeout']) ? (int)$settings['heartbeat_timeout'] : 60;
 $is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
 
+// show the most recent values regardless of heartbeat; the "live" flag only affects the status indicator
 $sensor_data = [
-    'temperature' => ($is_live) ? ($latest['temp'] ?? "--") : "--",
-    'humidity' => ($is_live) ? ($latest['hum'] ?? "--") : "--",
+    'temperature' => $latest['temp'] ?? "--",
+    'humidity' => $latest['hum'] ?? "--",
     'rain_array' => $weather['rain_array'],
     'forecast_trend' => $weather['forecast_trend'],
     'active_season' => 'Stable',
@@ -167,7 +168,13 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
                 <?php if ($sensor_data['is_live']): ?>
                     <div class="subtext" style="color: #40916c; font-weight: 600;">Live reading active</div>
                 <?php else: ?>
-                    <div class="subtext" style="color: #d90429; font-weight: 600;">⚠️ No Hardware Detected</div>
+                    <?php
+                        $age = $last_seen ? ($current_time - $last_seen) : null;
+                        $ageText = $age !== null ? round($age) . 's ago' : 'unknown';
+                    ?>
+                    <div class="subtext" style="color: #d90429; font-weight: 600;">
+                        ⚠️ Hardware offline (last seen <?php echo $ageText; ?>)
+                    </div>
                 <?php endif; ?>
             </div>
 
@@ -177,7 +184,13 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
                 <?php if ($sensor_data['is_live']): ?>
                     <div class="subtext" style="color: #40916c; font-weight: 600;">Live reading active</div>
                 <?php else: ?>
-                    <div class="subtext" style="color: #d90429; font-weight: 600;">⚠️ No Hardware Detected</div>
+                    <?php
+                        $age = $last_seen ? ($current_time - $last_seen) : null;
+                        $ageText = $age !== null ? round($age) . 's ago' : 'unknown';
+                    ?>
+                    <div class="subtext" style="color: #d90429; font-weight: 600;">
+                        ⚠️ Hardware offline (last seen <?php echo $ageText; ?>)
+                    </div>
                 <?php endif; ?>
             </div>
 

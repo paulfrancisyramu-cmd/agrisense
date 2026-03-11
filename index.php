@@ -93,6 +93,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($user) {
                 // credentials match; allow immediate password change
                 $_SESSION['reset_user_id'] = $user['id'];
+                // also remember the username so we can display it on the reset form
+                $_SESSION['reset_username'] = $user['username'];
                 $success_message = "Please enter your new password below.";
             } else {
                 $error_forgot = "No account found matching that information.";
@@ -110,8 +112,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $stmt = $conn->prepare("UPDATE users SET password = :pw WHERE id = :id");
             $stmt->execute([':pw' => $new, ':id' => $_SESSION['reset_user_id']]);
-            unset($_SESSION['reset_user_id']);
-            $success_message = "Password successfully updated. You may now log in.";
+            // automatically log the user in so credentials become valid immediately
+            $_SESSION['user_id'] = $_SESSION['reset_user_id'];
+            // fetch role & full_name for the session
+            $stmt = $conn->prepare("SELECT role, full_name FROM users WHERE id = :id");
+            $stmt->execute([':id' => $_SESSION['user_id']]);
+            $info = $stmt->fetch();
+            $_SESSION['role'] = $info['role'] ?? 'farmer';
+            $_SESSION['full_name'] = $info['full_name'] ?? '';
+            // clean up reset flags
+            unset($_SESSION['reset_user_id'], $_SESSION['reset_username']);
+            header("Location: dashboard.php");
+            exit();
         }
     }
 }
@@ -226,6 +238,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </form>
             <?php else: ?>
             <!-- reset form shown after verification -->
+            <p style="text-align:center; font-size:14px; color:#64748b; margin-bottom:10px;">
+                Resetting password for <strong><?php echo htmlspecialchars($_SESSION['reset_username'] ?? ''); ?></strong>
+            </p>
             <form method="POST" action="index.php">
                 <input type="hidden" name="reset_password" value="1">
                 <input type="password" name="new_password" placeholder="New Password" required>
