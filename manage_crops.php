@@ -37,17 +37,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // image handling
         $image_url = '';
-        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK && $_FILES['image']['size'] > 0) {
             $upload_dir = 'uploads/crops/';
             if (!is_dir($upload_dir)) {
-                mkdir($upload_dir, 0755, true);
+                if (!mkdir($upload_dir, 0755, true)) {
+                    $error = "Failed to create upload directory.";
+                }
             }
-            $file_ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-            $file_name = time() . '_' . preg_replace('/[^a-zA-Z0-9_-]/', '', $name) . '.' . $file_ext;
-            $target_path = $upload_dir . $file_name;
             
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $target_path)) {
-                $image_url = $target_path;
+            $file_ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+            // Validate file extension
+            $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            if (!in_array($file_ext, $allowed_exts)) {
+                $error = "Invalid file type. Allowed: jpg, jpeg, png, gif, webp";
+            }
+            
+            if (empty($error)) {
+                $file_name = time() . '_' . preg_replace('/[^a-zA-Z0-9_-]/', '', $name) . '.' . $file_ext;
+                $target_path = $upload_dir . $file_name;
+                
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $target_path)) {
+                    $image_url = $target_path;
+                } else {
+                    $error = "Failed to upload image. Check directory permissions.";
+                }
             }
         }
         
