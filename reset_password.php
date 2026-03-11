@@ -20,9 +20,9 @@ $username = $_GET['user'] ?? '';
 if (empty($token) || empty($username)) {
     $error = "Invalid reset link. Please request a new password reset.";
 } else {
-    // Check if token is valid and not expired
+    // Check if token is valid and not expired (using your existing schema)
     $stmt = $conn->prepare("
-        SELECT prt.id, prt.user_id, prt.expires_at, prt.used, u.username 
+        SELECT prt.id, prt.user_id, prt.expires_at, u.username 
         FROM password_reset_tokens prt
         JOIN users u ON prt.user_id = u.id
         WHERE prt.token = :token AND u.username = :username
@@ -32,8 +32,6 @@ if (empty($token) || empty($username)) {
     
     if (!$reset_request) {
         $error = "Invalid reset link. Please request a new password reset.";
-    } elseif ($reset_request['used']) {
-        $error = "This reset link has already been used. Please request a new password reset.";
     } elseif (strtotime($reset_request['expires_at']) < time()) {
         $error = "This reset link has expired. Please request a new password reset.";
     }
@@ -60,9 +58,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && empty($error)) {
             ':user_id' => $reset_request['user_id']
         ]);
         
-        // Mark token as used
-        $used_stmt = $conn->prepare("UPDATE password_reset_tokens SET used = TRUE WHERE id = :id");
-        $used_stmt->execute([':id' => $reset_request['id']]);
+        // Delete the used token
+        $delete_stmt = $conn->prepare("DELETE FROM password_reset_tokens WHERE id = :id");
+        $delete_stmt->execute([':id' => $reset_request['id']]);
         
         $success = "Password reset successfully! You can now login with your new password.";
     }

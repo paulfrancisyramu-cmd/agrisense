@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Set expiry time (30 minutes from now)
             $expires_at = date('Y-m-d H:i:s', strtotime('+30 minutes'));
             
-            // Insert token into database
+            // Insert token into password_reset_tokens table
             $insert_stmt = $conn->prepare("
                 INSERT INTO password_reset_tokens (user_id, token, expires_at) 
                 VALUES (:user_id, :token, :expires_at)
@@ -46,20 +46,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     ':expires_at' => $expires_at
                 ]);
                 
-                // Get the base URL
+                // Get the base URL - works on Render
                 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
                 $host = $_SERVER['HTTP_HOST'];
-                $base_url = $protocol . '://' . $host . dirname($_SERVER['REQUEST_URI']);
+                $base_path = dirname($_SERVER['REQUEST_URI']);
+                if ($base_path === '/' || $base_path === '\\') {
+                    $base_path = '';
+                }
                 
                 // Build reset link
-                $reset_link = $base_url . '/reset_password.php?token=' . $token . '&user=' . urlencode($username);
+                $reset_link = $protocol . '://' . $host . $base_path . '/reset_password.php?token=' . $token . '&user=' . urlencode($username);
                 
                 $message = "Password reset link generated successfully!";
             } catch (PDOException $e) {
-                $error = "Error generating reset token. Please try again.";
+                $error = "Error generating reset token: " . $e->getMessage();
             }
         } else {
-            // Don't reveal if username exists or not for security
+            // Don't reveal if username exists for security
             $message = "If the username exists, a reset link has been generated.";
         }
     }
