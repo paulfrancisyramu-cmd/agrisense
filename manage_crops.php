@@ -113,8 +113,10 @@ $db_crops = $conn->query("SELECT * FROM crops ORDER BY name")->fetchAll();
         .crop-card img {
             width: 60px;
             height: 60px;
-            object-fit: contain;
-            border-radius: 8px;
+            object-fit: cover;
+            border-radius: 50%;
+            background: white;
+            padding: 5px;
         }
         .crop-card h4 { margin: 10px 0 5px; color: #1b4332; }
         .crop-card .details { font-size: 13px; color: #64748b; }

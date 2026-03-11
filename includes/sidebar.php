@@ -7,6 +7,11 @@
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h2><img src="https://unpkg.com/lucide-static@latest/icons/leaf.svg" width="24" class="icon-white"> AgriSense</h2>
+        <?php if (!empty($_SESSION['full_name'])): ?>
+            <p class="user-name" style="font-size:14px; color:#d8f3dc; margin-top:4px;">
+                <?php echo htmlspecialchars($_SESSION['full_name']); ?>
+            </p>
+        <?php endif; ?>
     </div>
     
     <p class="sidebar-label">Main Menu</p>
@@ -29,7 +34,8 @@
     </a>
     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
     <a href="manage_crops.php" class="<?php echo ($current_page == 'manage_crops.php') ? 'active' : ''; ?>">
-        <img src="https://unpkg.com/lucide-static@latest/icons/seedling.svg" width="18" class="icon-white"> Manage Crops
+        <!-- switched to Icons8 plant icon because the previous lucide link was broken -->
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/seedling.png" width="18" class="icon-white"> Manage Crops
     </a>
     <?php endif; ?>
     <a href="settings.php" class="<?php echo ($current_page == 'settings.php') ? 'active' : ''; ?>">

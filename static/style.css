@@ -21,6 +21,12 @@
     align-items: center;
     margin-bottom: 30px;
 }
+
+.sidebar-header .user-name {
+    font-size: 14px;
+    color: #d8f3dc;
+    margin-top: 4px;
+}
 .sidebar h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 22px; color: white; }
 .hamburger {
     display: none;

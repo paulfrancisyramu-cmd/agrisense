@@ -150,9 +150,16 @@ function get_all_crops($conn = null) {
             
             foreach ($admin_crops as $crop) {
                 // Parse seasons array (PostgreSQL returns as string {a,b,c} or array)
-                $seasons = is_array($crop['seasons']) ? $crop['seasons'] : [];
-                if (is_string($crop['seasons'])) {
-                    $seasons = array_map('trim', explode(',', trim($crop['seasons'], '{}')));
+                // handle PostgreSQL text/array representation, remove any stray
+                // quotes that can appear when the driver returns '{"A","B"}'
+                $seasons = [];
+                if (is_array($crop['seasons'])) {
+                    $seasons = $crop['seasons'];
+                } elseif (is_string($crop['seasons'])) {
+                    $parts = explode(',', trim($crop['seasons'], '{}'));
+                    $seasons = array_map(function($s) {
+                        return trim($s, " \"\'\n\r");
+                    }, $parts);
                 }
                 
                 $all_crops[] = [
