@@ -60,6 +60,11 @@ $is_admin = $_SESSION['role'] === 'admin';
     <div class="main-content">
         <div class="header">
             <h1>System Configuration</h1>
+            <?php if (!empty($_SESSION['username'])): ?>
+                <div style="font-size:14px; color:#748c94; margin-top:4px;">
+                    Logged in as: <?php echo htmlspecialchars($_SESSION['username']); ?>
+                </div>
+            <?php endif; ?>
         </div>
 
         <form action="settings.php" method="POST">

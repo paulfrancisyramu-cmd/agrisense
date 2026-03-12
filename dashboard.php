@@ -79,7 +79,8 @@ $sensor_data = [
 $top_crop = null;
 // Only run the recommendation algorithm if we actually have live hardware data
 // *and* the farmer has not explicitly started monitoring a particular crop.
-if ($sensor_data['temperature'] !== "--" && !$active_crop) {
+// The additional is_live check ensures no stale recommendations during disconnects.
+if ($sensor_data['temperature'] !== "--" && !$active_crop && $sensor_data['is_live']) {
     $current_temp = (float)$sensor_data['temperature'];
     $current_hum = (float)$sensor_data['humidity'];
     $sensor_data['active_season'] = get_current_season($current_temp, $current_hum, $weather['two_week_total'], $settings['rain_threshold']);
@@ -136,7 +137,7 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
     <div class="main-content">
         <div class="header">
             <h1>Field Conditions</h1>
-            <div class="status">System Online</div>
+            <div class="status"><?php echo $sensor_data['is_live'] ? 'System Online' : 'Hardware Offline'; ?></div>
         </div>
 
         <div class="card-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;">
@@ -170,8 +171,8 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
 
             <div class="card" id="card-temp">
                 <h3>TEMPERATURE</h3>
-                <div class="value"><?php echo $sensor_data['temperature']; ?> <span style="font-family: 'Poppins', sans-serif;">°C</span></div>
                 <?php if ($sensor_data['is_live']): ?>
+                    <div class="value"><?php echo $sensor_data['temperature']; ?> <span style="font-family: 'Poppins', sans-serif;">°C</span></div>
                     <div class="subtext" style="color: #40916c; font-weight: 600;">Live reading active</div>
                 <?php else: ?>
                     <?php
@@ -179,15 +180,15 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
                         $ageText = $age !== null ? round($age) . 's ago' : 'unknown';
                     ?>
                     <div class="subtext" style="color: #d90429; font-weight: 600;">
-                        ⚠️ Hardware offline (last seen <?php echo $ageText; ?>)
+                        ⚠️ Hardware offline (last seen <?php echo $ageText; ?>) – no temperature data available
                     </div>
                 <?php endif; ?>
             </div>
 
             <div class="card" id="card-hum">
                 <h3>HUMIDITY</h3>
-                <div class="value"><?php echo $sensor_data['humidity']; ?> <span style="font-family: 'Poppins', sans-serif;">%</span></div>
                 <?php if ($sensor_data['is_live']): ?>
+                    <div class="value"><?php echo $sensor_data['humidity']; ?> <span style="font-family: 'Poppins', sans-serif;">%</span></div>
                     <div class="subtext" style="color: #40916c; font-weight: 600;">Live reading active</div>
                 <?php else: ?>
                     <?php
@@ -195,7 +196,7 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
                         $ageText = $age !== null ? round($age) . 's ago' : 'unknown';
                     ?>
                     <div class="subtext" style="color: #d90429; font-weight: 600;">
-                        ⚠️ Hardware offline (last seen <?php echo $ageText; ?>)
+                        ⚠️ Hardware offline (last seen <?php echo $ageText; ?>) – no humidity data available
                     </div>
                 <?php endif; ?>
             </div>
@@ -221,22 +222,26 @@ if ($sensor_data['temperature'] !== "--" && !$active_crop) {
         <h3 style="color: #1b4332;">IDEAL CROP</h3>
         
         <div class="value" style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
-            <?php if ($top_crop): ?>
+            <?php if ($sensor_data['is_live'] && $top_crop): ?>
 <img src="<?php echo $top_crop['image_url']; ?>" style="width: 50px; height: 50px; background: white; border-radius: 50%; padding: 5px; object-fit: cover;">
                 <span style="font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 600; color: #1b4332 !important; letter-spacing: 0.5px;"><?php echo $top_crop['name']; ?></span>
+            <?php elseif (!$sensor_data['is_live']): ?>
+                <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 600; color: #d90429 !important;">Hardware offline</span>
             <?php else: ?>
                 <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 600; color: #1b4332 !important;">Analyzing...</span>
             <?php endif; ?>
         </div>
 
-        <?php if ($top_crop): ?>
+        <?php if ($sensor_data['is_live'] && $top_crop): ?>
         <div style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #1b4332; margin-top: 10px; font-weight: 500;">
             Ideal: <?php echo $top_crop['req_temp']; ?> | <?php echo $top_crop['req_hum']; ?>
         </div>
         <?php endif; ?>
 
         <div class="subtext" style="font-family: 'Poppins', sans-serif; margin-top: 8px; color: #1b4332; background: transparent; padding: 0;">
-            <?php if ($top_crop): ?>
+            <?php if (!$sensor_data['is_live']): ?>
+                No recommendation available while hardware is offline
+            <?php elseif ($top_crop): ?>
                 <?php echo $top_crop['match']; ?>% Match for current season
             <?php else: ?>
                 Gathering metrics...

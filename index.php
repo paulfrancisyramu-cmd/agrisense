@@ -67,6 +67,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['user_id'] = $data['id'];
                 $_SESSION['role'] = $data['role'];
                 $_SESSION['full_name'] = $data['full_name'] ?? '';
+                // remember the username itself for display later
+                $_SESSION['username'] = $user;
                 header("Location: dashboard.php");
                 exit();
             } else {

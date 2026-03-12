@@ -27,6 +27,8 @@ $is_live = ($last_seen > 0 && ($current_time - $last_seen) <= $timeout);
 $has_sensor_row = ($latest && isset($latest['temp'], $latest['hum']));
 // only consider there to be no data if we literally have no row at all
 $no_data = (!$has_sensor_row);
+// overall eligibility flag for computing crop rankings
+$can_recommend = ($is_live && !$no_data);
 
 
 // --- FAKE DATA FOR TESTING ---
@@ -41,7 +43,7 @@ $top_crop = null;
 $other_crops = [];
 
 // Only run the crop ranking when there is live hardware AND valid sensor data.
-if (!$no_data) {
+if ($can_recommend) {
     $current_temp = (float)$latest['temp'];
     $current_hum = (float)$latest['hum'];
     $active_season = get_current_season($current_temp, $current_hum, $weather['two_week_total'], $settings['rain_threshold']);
@@ -101,12 +103,15 @@ if (!$no_data) {
             <div class="status" id="system-status"><?php echo $is_live ? "Live Analysis Active" : "Hardware Offline"; ?></div>
         </div>
 
-        <?php if ($no_data): ?>
+        <?php if (!$can_recommend): ?>
             <div class="card" style="text-align: center; padding: 50px 20px; border-top: 5px solid #d90429;">
                 <img src="https://unpkg.com/lucide-static@latest/icons/satellite-dish.svg" width="48" style="filter: opacity(0.5); margin-bottom: 20px;">
                 <h2 style="color: #1b4332; margin-bottom: 10px;">Awaiting Field Data</h2>
                 <p style="color: #748c94; max-width: 500px; margin: 0 auto;">
                     AgriSense requires live temperature and humidity readings from your ESP32 node to generate accurate, seasonal crop recommendations.
+                    <?php if (!$is_live): ?>
+                        <br><strong>Note:</strong> hardware appears to be offline.
+                    <?php endif; ?>
                 </p>
             </div>
         <?php else: ?>
