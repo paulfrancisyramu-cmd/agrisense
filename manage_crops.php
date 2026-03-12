@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name']);
         $temp_min = (float)$_POST['temp_min'];
         $temp_max = (float)$_POST['temp_max'];
- = (float)$        $hum_min_POST['hum_min'];
+        $hum_min = (float)$_POST['hum_min'];
         $hum_max = (float)$_POST['hum_max'];
         $seasons = $_POST['seasons'] ?? [];
         $crop_id = isset($_POST['crop_id']) ? (int)$_POST['crop_id'] : null;
