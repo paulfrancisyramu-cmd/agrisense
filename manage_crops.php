@@ -35,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $seasons = $_POST['seasons'] ?? [];
         $crop_id = isset($_POST['crop_id']) ? (int)$_POST['crop_id'] : null;
         
-        // image handling - store as base64 for cloud hosting (Render has ephemeral filesystem)
+        // image handling - prefer saving a persistent file under uploads/crops but fall back to
+        // base64 storage for compatibility if the filesystem is not writable.
         $image_url = '';
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK && $_FILES['image']['size'] > 0) {
             $file_ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
@@ -51,18 +52,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             if (empty($error)) {
-                // Read file and convert to base64
-                $image_data = file_get_contents($_FILES['image']['tmp_name']);
-                $mime_type = mime_content_type($_FILES['image']['tmp_name']);
-                $image_url = 'data:' . $mime_type . ';base64,' . base64_encode($image_data);
+                // try to move the uploaded file into uploads/crops with a unique name
+                $uploadDir = __DIR__ . '/uploads/crops/';
+                if (!is_dir($uploadDir)) {
+                    @mkdir($uploadDir, 0755, true);
+                }
+                if (is_dir($uploadDir) && is_writable($uploadDir)) {
+                    $filename = uniqid('crop_', true) . '.' . $file_ext;
+                    $target = $uploadDir . $filename;
+                    if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+                        // store web‑relative path
+                        $image_url = 'uploads/crops/' . $filename;
+                    } else {
+                        // fallback to base64 if move fails
+                        $image_data = file_get_contents($_FILES['image']['tmp_name']);
+                        $mime_type = mime_content_type($_FILES['image']['tmp_name']);
+                        $image_url = 'data:' . $mime_type . ';base64,' . base64_encode($image_data);
+                    }
+                } else {
+                    // filesystem not writable; save as base64 in database
+                    $image_data = file_get_contents($_FILES['image']['tmp_name']);
+                    $mime_type = mime_content_type($_FILES['image']['tmp_name']);
+                    $image_url = 'data:' . $mime_type . ';base64,' . base64_encode($image_data);
+                }
             }
         }
         
-        if (empty($image_url) && $edit_crop && isset($edit_crop['image_url'])) {
-            $image_url = $edit_crop['image_url'];
+        // if no new image was uploaded, preserve the existing one (if editing)
+        $old_image = $edit_crop['image_url'] ?? '';
+        if (empty($image_url) && $edit_crop && !empty($old_image)) {
+            $image_url = $old_image;
         }
         if (empty($image_url)) {
             $image_url = 'https://img.icons8.com/color/96/plant.png';
+        }
+        // if we're editing and we have replaced the image, delete the old file
+        if ($edit_crop && !empty($old_image) && $old_image !== $image_url && strpos($old_image, 'uploads/crops/') === 0) {
+            @unlink(__DIR__ . '/../' . $old_image);
         }
         
         if (!empty($name) && $temp_min < $temp_max && $hum_min < $hum_max && !empty($seasons)) {
@@ -82,8 +108,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Please fill all fields correctly. Temperature and humidity min must be less than max.";
         }
     } elseif (isset($_POST['delete_crop'])) {
-        // Delete crop
+        // Delete crop (and associated file if present)
         $crop_id = (int)$_POST['crop_id'];
+        // fetch existing image so we can remove file
+        $stmt = $conn->prepare("SELECT image_url FROM crops WHERE id = ? AND created_by = ?");
+        $stmt->execute([$crop_id, $_SESSION['user_id']]);
+        $row = $stmt->fetch();
+        if ($row && strpos($row['image_url'], 'uploads/crops/') === 0) {
+            @unlink(__DIR__ . '/../' . $row['image_url']);
+        }
         $stmt = $conn->prepare("DELETE FROM crops WHERE id = ? AND created_by = ?");
         $stmt->execute([$crop_id, $_SESSION['user_id']]);
         header("Location: manage_crops.php?message=" . urlencode("Crop deleted successfully!"));
